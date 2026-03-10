@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Calendar, Eye, FileText, MoreHorizontal, Plus, Search, Upload } from "lucide-react"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { Button } from "@/components/ui/button"
@@ -312,21 +313,21 @@ export default function PatientsPage() {
               </TableHeader>
               <TableBody>
                 {filteredPatients.map((patient) => (
-                  <TableRow key={patient.id}>
+                  <TableRow key={patient.id} className="cursor-pointer hover:bg-muted/50">
                     <TableCell>
-                      <div className="flex items-center gap-3">
+                      <Link href={`/patients/${patient.id}`} className="flex items-center gap-3">
                         <Avatar className="size-9">
                           <AvatarFallback className="bg-primary/10 text-primary text-sm">
                             {patient.initials}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="font-medium">{patient.name}</div>
+                          <div className="font-medium hover:text-primary transition-colors">{patient.name}</div>
                           <div className="text-xs text-muted-foreground">
                             {patient.id} • {patient.age}y • {patient.gender}
                           </div>
                         </div>
-                      </div>
+                      </Link>
                     </TableCell>
                     <TableCell>
                       <span className="text-sm">{patient.study}</span>
@@ -387,9 +388,11 @@ export default function PatientsPage() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem>
-                            <Eye className="mr-2 size-4" />
-                            View Profile
+                          <DropdownMenuItem asChild>
+                            <Link href={`/patients/${patient.id}`}>
+                              <Eye className="mr-2 size-4" />
+                              View Profile
+                            </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem>
                             <Calendar className="mr-2 size-4" />
