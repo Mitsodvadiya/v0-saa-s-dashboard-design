@@ -19,6 +19,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
+import { RecruitmentChart } from "@/components/dashboard/recruitment-chart"
+import { VisitStatusChart } from "@/components/dashboard/visit-status-chart"
 import {
   ChartContainer,
   ChartTooltip,
@@ -164,103 +166,8 @@ export default function AnalyticsPage() {
               </div>
 
               <div className="grid gap-6 lg:grid-cols-2">
-                <Card className="shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-base font-semibold">Enrollment Trend</CardTitle>
-                    <CardDescription>Monthly enrollment vs target</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ChartContainer config={chartConfig} className="h-[300px] w-full">
-                      <AreaChart data={enrollmentData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                        <defs>
-                          <linearGradient id="enrolledGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.2} />
-                            <stop offset="50%" stopColor="var(--primary)" stopOpacity={0.1} />
-                            <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
-                        <XAxis
-                          dataKey="month"
-                          tickLine={false}
-                          axisLine={false}
-                          tickMargin={8}
-                          className="text-[10px] fill-muted-foreground uppercase font-medium"
-                        />
-                        <YAxis
-                          tickLine={false}
-                          axisLine={false}
-                          tickMargin={8}
-                          className="text-[10px] fill-muted-foreground font-medium"
-                        />
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <Area
-                          type="monotone"
-                          dataKey="target"
-                          stroke="var(--muted-foreground)"
-                          strokeWidth={1.5}
-                          strokeDasharray="4 4"
-                          fill="transparent"
-                          dot={false}
-                          activeDot={false}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="enrolled"
-                          stroke="var(--primary)"
-                          strokeWidth={2.5}
-                          fill="url(#enrolledGrad)"
-                          dot={{ r: 3, fill: "var(--primary)", strokeWidth: 0 }}
-                          activeDot={{ r: 5, strokeWidth: 0 }}
-                        />
-                      </AreaChart>
-                    </ChartContainer>
-                  </CardContent>
-                </Card>
-
-                <Card className="shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-base font-semibold">Patient Status Distribution</CardTitle>
-                    <CardDescription>Current patient status across all studies</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ChartContainer config={chartConfig} className="h-[300px] w-full">
-                      <PieChart>
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <Pie
-                          data={patientStatusData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={100}
-                          paddingAngle={4}
-                          dataKey="value"
-                          strokeWidth={0}
-                        >
-                          {patientStatusData.map((entry, index) => (
-                            <Cell
-                              key={`cell-${index}`}
-                              fill={entry.fill}
-                              className="hover:opacity-80 transition-opacity duration-300"
-                            />
-                          ))}
-                        </Pie>
-                      </PieChart>
-                    </ChartContainer>
-                    <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 pt-4 border-t">
-                      {patientStatusData.map((item) => (
-                        <div key={item.name} className="flex items-center gap-2">
-                          <div
-                            className="size-2 rounded-full shadow-sm"
-                            style={{ backgroundColor: item.fill }}
-                          />
-                          <span className="text-xs text-muted-foreground font-medium">{item.name}</span>
-                          <span className="ml-auto text-xs font-bold tabular-nums">{item.value}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                <RecruitmentChart />
+                <VisitStatusChart />
               </div>
 
               <div className="grid gap-6 lg:grid-cols-2">
