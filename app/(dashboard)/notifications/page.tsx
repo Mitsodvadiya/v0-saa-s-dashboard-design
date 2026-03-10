@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Bell, Calendar, Check, CheckCheck, FileText, Trash2, User, AlertTriangle } from "lucide-react"
+import { Bell, Calendar, Check, CheckCheck, FileText, Trash2, User, AlertTriangle, CheckCircle2 } from "lucide-react"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -10,6 +10,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 
 const notifications = [
+  {
+    id: "0",
+    type: "task",
+    title: "Task Due Soon",
+    message: "High priority task: 'Review Lab Results' is due in 15 minutes",
+    time: "Just now",
+    read: false,
+    icon: CheckCircle2,
+  },
   {
     id: "1",
     type: "visit",
@@ -79,6 +88,7 @@ const typeColors = {
   visit: "bg-primary/10 text-primary",
   patient: "bg-success/10 text-success",
   document: "bg-warning/10 text-warning",
+  task: "bg-info/10 text-info",
 }
 
 export default function NotificationsPage() {
@@ -134,6 +144,7 @@ export default function NotificationsPage() {
             <TabsTrigger value="visit">Visits</TabsTrigger>
             <TabsTrigger value="patient">Patients</TabsTrigger>
             <TabsTrigger value="document">Documents</TabsTrigger>
+            <TabsTrigger value="task">Tasks</TabsTrigger>
           </TabsList>
 
           <TabsContent value={selectedTab} className="mt-6">

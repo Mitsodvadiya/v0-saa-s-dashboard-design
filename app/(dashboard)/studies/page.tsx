@@ -147,7 +147,6 @@ export default function StudiesPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
-  const [isViewOpen, setIsViewOpen] = useState(false)
   const [isArchiveOpen, setIsArchiveOpen] = useState(false)
   const [selectedTab, setSelectedTab] = useState("all")
   const [selectedStudy, setSelectedStudy] = useState<Study | null>(null)
@@ -205,13 +204,13 @@ export default function StudiesPage() {
       studies.map((s) =>
         s.id === selectedStudy.id
           ? {
-              ...s,
-              name: formData.name,
-              sponsor: formData.sponsor || s.sponsor,
-              phase: formData.phase || s.phase,
-              target: parseInt(formData.target) || s.target,
-              description: formData.description || s.description,
-            }
+            ...s,
+            name: formData.name,
+            sponsor: formData.sponsor || s.sponsor,
+            phase: formData.phase || s.phase,
+            target: parseInt(formData.target) || s.target,
+            description: formData.description || s.description,
+          }
           : s
       )
     )
@@ -241,10 +240,6 @@ export default function StudiesPage() {
     setIsEditOpen(true)
   }
 
-  const openView = (study: Study) => {
-    setSelectedStudy(study)
-    setIsViewOpen(true)
-  }
 
   const openArchive = (study: Study) => {
     setSelectedStudy(study)
@@ -290,98 +285,102 @@ export default function StudiesPage() {
                 {filteredStudies.map((study) => {
                   const progress = Math.round((study.enrolled / study.target) * 100)
                   return (
-                    <Card key={study.id} className="shadow-sm hover:shadow-md transition-shadow">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <CardTitle className="text-base">{study.name}</CardTitle>
-                            <CardDescription className="mt-1">{study.sponsor}</CardDescription>
-                          </div>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="size-8">
-                                <MoreHorizontal className="size-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => openView(study)}>
-                                <Eye className="mr-2 size-4" />
-                                View Details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => openEdit(study)}>
-                                <Edit2 className="mr-2 size-4" />
-                                Edit Study
-                              </DropdownMenuItem>
-                              <DropdownMenuItem asChild>
-                                <Link href={`/patients?study=${study.name}`}>
-                                  <Users className="mr-2 size-4" />
-                                  View Patients
-                                </Link>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <FileText className="mr-2 size-4" />
-                                Download Protocol
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                className="text-destructive"
-                                onClick={() => openArchive(study)}
-                              >
-                                <Archive className="mr-2 size-4" />
-                                Archive Study
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                        <div className="flex gap-2 mt-2">
-                          <Badge variant="outline" className="text-xs">
-                            {study.phase}
-                          </Badge>
-                          <Badge className={statusStyles[study.status]}>
-                            {study.status.charAt(0).toUpperCase() + study.status.slice(1)}
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {study.description}
-                        </p>
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-muted-foreground">Enrollment</span>
-                            <span className="font-medium">
-                              {study.enrolled}/{study.target} ({progress}%)
-                            </span>
-                          </div>
-                          <Progress value={progress} className="h-2" />
-                        </div>
-                        <div className="grid grid-cols-3 gap-2 pt-2 border-t">
-                          <div className="text-center">
-                            <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
-                              <FileText className="size-3" />
-                              Visits
+                    <Link key={study.id} href={`/studies/${study.id}`}>
+                      <Card className="shadow-sm hover:shadow-md transition-shadow cursor-pointer h-full">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <CardTitle className="text-base">{study.name}</CardTitle>
+                              <CardDescription className="mt-1">{study.sponsor}</CardDescription>
                             </div>
-                            <div className="text-sm font-medium">{study.visits}</div>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="size-8">
+                                  <MoreHorizontal className="size-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem asChild>
+                                  <Link href={`/studies/${study.id}`}>
+                                    <Eye className="mr-2 size-4" />
+                                    View Details
+                                  </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => openEdit(study)}>
+                                  <Edit2 className="mr-2 size-4" />
+                                  Edit Study
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                  <Link href={`/patients?study=${study.name}`}>
+                                    <Users className="mr-2 size-4" />
+                                    View Patients
+                                  </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                  <FileText className="mr-2 size-4" />
+                                  Download Protocol
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  className="text-destructive"
+                                  onClick={() => openArchive(study)}
+                                >
+                                  <Archive className="mr-2 size-4" />
+                                  Archive Study
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
-                          <div className="text-center">
-                            <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
-                              <Users className="size-3" />
-                              Sites
-                            </div>
-                            <div className="text-sm font-medium">{study.sites}</div>
+                          <div className="flex gap-2 mt-2">
+                            <Badge variant="outline" className="text-xs">
+                              {study.phase}
+                            </Badge>
+                            <Badge className={statusStyles[study.status]}>
+                              {study.status.charAt(0).toUpperCase() + study.status.slice(1)}
+                            </Badge>
                           </div>
-                          <div className="text-center">
-                            <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
-                              <Calendar className="size-3" />
-                              End
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {study.description}
+                          </p>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">Enrollment</span>
+                              <span className="font-medium">
+                                {study.enrolled}/{study.target} ({progress}%)
+                              </span>
                             </div>
-                            <div className="text-sm font-medium">
-                              {study.endDate.split(",")[0].split(" ")[0]}
+                            <Progress value={progress} className="h-2" />
+                          </div>
+                          <div className="grid grid-cols-3 gap-2 pt-2 border-t">
+                            <div className="text-center">
+                              <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+                                <FileText className="size-3" />
+                                Visits
+                              </div>
+                              <div className="text-sm font-medium">{study.visits}</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+                                <Users className="size-3" />
+                                Sites
+                              </div>
+                              <div className="text-sm font-medium">{study.sites}</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+                                <Calendar className="size-3" />
+                                End
+                              </div>
+                              <div className="text-sm font-medium">
+                                {study.endDate.split(",")[0].split(" ")[0]}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                        </CardContent>
+                      </Card>
+                    </Link>
                   )
                 })}
               </div>
@@ -566,84 +565,6 @@ export default function StudiesPage() {
         </DialogContent>
       </Dialog>
 
-      {/* View Study Dialog */}
-      <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Study Details</DialogTitle>
-            <DialogDescription>{selectedStudy?.id}</DialogDescription>
-          </DialogHeader>
-          {selectedStudy && (
-            <div className="space-y-6 py-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-xl font-semibold">{selectedStudy.name}</h3>
-                  <p className="text-muted-foreground">{selectedStudy.sponsor}</p>
-                </div>
-                <div className="flex gap-2">
-                  <Badge variant="outline">{selectedStudy.phase}</Badge>
-                  <Badge className={statusStyles[selectedStudy.status]}>
-                    {selectedStudy.status.charAt(0).toUpperCase() + selectedStudy.status.slice(1)}
-                  </Badge>
-                </div>
-              </div>
-              <p className="text-sm text-muted-foreground">{selectedStudy.description}</p>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span>Enrollment Progress</span>
-                  <span className="font-medium">
-                    {selectedStudy.enrolled}/{selectedStudy.target} (
-                    {Math.round((selectedStudy.enrolled / selectedStudy.target) * 100)}%)
-                  </span>
-                </div>
-                <Progress
-                  value={Math.round((selectedStudy.enrolled / selectedStudy.target) * 100)}
-                  className="h-3"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                <div className="rounded-lg border p-3 text-center">
-                  <p className="text-2xl font-bold text-primary">{selectedStudy.enrolled}</p>
-                  <p className="text-xs text-muted-foreground">Enrolled</p>
-                </div>
-                <div className="rounded-lg border p-3 text-center">
-                  <p className="text-2xl font-bold text-primary">{selectedStudy.visits}</p>
-                  <p className="text-xs text-muted-foreground">Visits</p>
-                </div>
-                <div className="rounded-lg border p-3 text-center">
-                  <p className="text-2xl font-bold text-primary">{selectedStudy.sites}</p>
-                  <p className="text-xs text-muted-foreground">Sites</p>
-                </div>
-                <div className="rounded-lg border p-3 text-center">
-                  <p className="text-2xl font-bold text-primary">{selectedStudy.target}</p>
-                  <p className="text-xs text-muted-foreground">Target</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4 rounded-lg border p-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Start Date</p>
-                  <p className="font-medium">{selectedStudy.startDate}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">End Date</p>
-                  <p className="font-medium">{selectedStudy.endDate}</p>
-                </div>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsViewOpen(false)}>
-              Close
-            </Button>
-            <Button asChild>
-              <Link href={`/patients?study=${selectedStudy?.name}`}>
-                <Users className="mr-2 size-4" />
-                View Patients
-              </Link>
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Archive Confirmation */}
       <AlertDialog open={isArchiveOpen} onOpenChange={setIsArchiveOpen}>

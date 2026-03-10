@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Building2, Edit2, Mail, MoreHorizontal, Phone, Plus, Search, Trash2, Eye } from "lucide-react"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { Button } from "@/components/ui/button"
@@ -119,7 +120,6 @@ export default function SponsorsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
-  const [isViewOpen, setIsViewOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [selectedSponsor, setSelectedSponsor] = useState<Sponsor | null>(null)
   const [formData, setFormData] = useState({
@@ -198,10 +198,6 @@ export default function SponsorsPage() {
     setIsEditOpen(true)
   }
 
-  const openView = (sponsor: Sponsor) => {
-    setSelectedSponsor(sponsor)
-    setIsViewOpen(true)
-  }
 
   const openDelete = (sponsor: Sponsor) => {
     setSelectedSponsor(sponsor)
@@ -251,17 +247,17 @@ export default function SponsorsPage() {
                   </TableRow>
                 ) : (
                   filteredSponsors.map((sponsor) => (
-                    <TableRow key={sponsor.id}>
+                    <TableRow key={sponsor.id} className="group cursor-pointer hover:bg-muted/50">
                       <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+                        <Link href={`/sponsors/${sponsor.id}`} className="flex items-center gap-3">
+                          <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
                             <Building2 className="size-5 text-primary" />
                           </div>
                           <div>
-                            <div className="font-medium">{sponsor.name}</div>
+                            <div className="font-medium hover:text-primary transition-colors">{sponsor.name}</div>
                             <div className="text-xs text-muted-foreground">{sponsor.id}</div>
                           </div>
-                        </div>
+                        </Link>
                       </TableCell>
                       <TableCell>
                         <div>
@@ -287,8 +283,8 @@ export default function SponsorsPage() {
                             sponsor.status === "active"
                               ? "bg-success/10 text-success border-0"
                               : sponsor.status === "pending"
-                              ? "bg-warning/10 text-warning border-0"
-                              : "bg-muted text-muted-foreground border-0"
+                                ? "bg-warning/10 text-warning border-0"
+                                : "bg-muted text-muted-foreground border-0"
                           }
                         >
                           {sponsor.status.charAt(0).toUpperCase() + sponsor.status.slice(1)}
@@ -305,9 +301,11 @@ export default function SponsorsPage() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => openView(sponsor)}>
-                              <Eye className="mr-2 size-4" />
-                              View Details
+                            <DropdownMenuItem asChild>
+                              <Link href={`/sponsors/${sponsor.id}`}>
+                                <Eye className="mr-2 size-4" />
+                                View Details
+                              </Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => openEdit(sponsor)}>
                               <Edit2 className="mr-2 size-4" />
@@ -445,73 +443,6 @@ export default function SponsorsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* View Sponsor Dialog */}
-      <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Sponsor Details</DialogTitle>
-            <DialogDescription>{selectedSponsor?.id}</DialogDescription>
-          </DialogHeader>
-          {selectedSponsor && (
-            <div className="space-y-4 py-4">
-              <div className="flex items-center gap-4">
-                <div className="flex size-16 items-center justify-center rounded-xl bg-primary/10">
-                  <Building2 className="size-8 text-primary" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold">{selectedSponsor.name}</h3>
-                  <Badge
-                    className={
-                      selectedSponsor.status === "active"
-                        ? "bg-success/10 text-success border-0"
-                        : "bg-warning/10 text-warning border-0"
-                    }
-                  >
-                    {selectedSponsor.status.charAt(0).toUpperCase() + selectedSponsor.status.slice(1)}
-                  </Badge>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4 rounded-lg border p-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Contact Person</p>
-                  <p className="font-medium">{selectedSponsor.contact || "—"}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Created</p>
-                  <p className="font-medium">{selectedSponsor.createdAt}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Email</p>
-                  <p className="font-medium">{selectedSponsor.email}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Phone</p>
-                  <p className="font-medium">{selectedSponsor.phone || "—"}</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="rounded-lg border p-4 text-center">
-                  <p className="text-3xl font-bold text-primary">{selectedSponsor.activeStudies}</p>
-                  <p className="text-sm text-muted-foreground">Active Studies</p>
-                </div>
-                <div className="rounded-lg border p-4 text-center">
-                  <p className="text-3xl font-bold text-primary">{selectedSponsor.totalPatients}</p>
-                  <p className="text-sm text-muted-foreground">Total Patients</p>
-                </div>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsViewOpen(false)}>
-              Close
-            </Button>
-            <Button onClick={() => { setIsViewOpen(false); if (selectedSponsor) openEdit(selectedSponsor); }}>
-              <Edit2 className="mr-2 size-4" />
-              Edit Sponsor
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Delete Confirmation */}
       <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>

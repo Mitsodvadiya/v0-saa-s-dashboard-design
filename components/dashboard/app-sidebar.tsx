@@ -18,6 +18,7 @@ import {
   Settings,
   Shield,
   ClipboardList,
+  CheckCircle2,
   Users,
   UserCog,
   Stethoscope,
@@ -78,6 +79,11 @@ const mainNavItems = [
     title: "Calendar",
     icon: Calendar,
     href: "/calendar",
+  },
+  {
+    title: "Tasks",
+    icon: CheckCircle2,
+    href: "/tasks",
   },
   {
     title: "Documents",
