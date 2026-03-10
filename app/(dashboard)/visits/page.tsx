@@ -12,10 +12,11 @@ import {
   X,
   Filter,
   CalendarDays,
+  Bot,
 } from "lucide-react"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -45,6 +46,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -53,8 +64,21 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { FieldGroup, Field, FieldLabel } from "@/components/ui/field"
+import { toast } from "sonner"
 
-const visits = [
+interface Visit {
+  id: string
+  patient: { name: string; id: string; initials: string }
+  study: string
+  visitType: string
+  date: string
+  time: string
+  status: "confirmed" | "pending" | "rescheduled" | "not_confirmed" | "missed" | "cancelled"
+  aiCallResult: string | null
+  procedures: string[]
+}
+
+const initialVisits: Visit[] = [
   {
     id: "V-2024-001",
     patient: { name: "John Smith", id: "PT-1001", initials: "JS" },
@@ -151,14 +175,21 @@ const statusStyles = {
   rescheduled: { label: "Rescheduled", className: "bg-primary/10 text-primary border-0" },
   not_confirmed: { label: "Not Confirmed", className: "bg-destructive/10 text-destructive border-0" },
   missed: { label: "Missed", className: "bg-destructive/10 text-destructive border-0" },
+  cancelled: { label: "Cancelled", className: "bg-muted text-muted-foreground border-0" },
 }
 
 export default function VisitsPage() {
+  const [visits, setVisits] = useState<Visit[]>(initialVisits)
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedTab, setSelectedTab] = useState("all")
-  const [selectedVisit, setSelectedVisit] = useState<typeof visits[0] | null>(null)
+  const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isRescheduleOpen, setIsRescheduleOpen] = useState(false)
+  const [isCancelOpen, setIsCancelOpen] = useState(false)
+  const [isAICallOpen, setIsAICallOpen] = useState(false)
+  const [isEmailOpen, setIsEmailOpen] = useState(false)
+  const [rescheduleData, setRescheduleData] = useState({ date: "", time: "", reason: "" })
+  const [emailContent, setEmailContent] = useState("")
 
   const filteredVisits = visits.filter((visit) => {
     const matchesSearch =
@@ -170,10 +201,130 @@ export default function VisitsPage() {
   })
 
   const stats = {
-    total: visits.length,
+    total: visits.filter((v) => v.status !== "cancelled").length,
     confirmed: visits.filter((v) => v.status === "confirmed").length,
     pending: visits.filter((v) => v.status === "pending").length,
     needsAttention: visits.filter((v) => ["not_confirmed", "missed"].includes(v.status)).length,
+  }
+
+  const handleConfirm = (visit: Visit) => {
+    setVisits(
+      visits.map((v) =>
+        v.id === visit.id
+          ? { ...v, status: "confirmed" as const, aiCallResult: "Manually confirmed" }
+          : v
+      )
+    )
+    toast.success(`Visit ${visit.id} confirmed`)
+  }
+
+  const handleReschedule = () => {
+    if (!selectedVisit || !rescheduleData.date) {
+      toast.error("Please select a new date")
+      return
+    }
+    const formattedDate = new Date(rescheduleData.date).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    })
+    setVisits(
+      visits.map((v) =>
+        v.id === selectedVisit.id
+          ? {
+              ...v,
+              date: formattedDate,
+              time: rescheduleData.time || v.time,
+              status: "rescheduled" as const,
+              aiCallResult: rescheduleData.reason || "Rescheduled by coordinator",
+            }
+          : v
+      )
+    )
+    setIsRescheduleOpen(false)
+    setSelectedVisit(null)
+    setRescheduleData({ date: "", time: "", reason: "" })
+    toast.success("Visit rescheduled successfully")
+  }
+
+  const handleCancel = () => {
+    if (!selectedVisit) return
+    setVisits(
+      visits.map((v) =>
+        v.id === selectedVisit.id
+          ? { ...v, status: "cancelled" as const, aiCallResult: "Visit cancelled" }
+          : v
+      )
+    )
+    setIsCancelOpen(false)
+    setSelectedVisit(null)
+    toast.success("Visit cancelled")
+  }
+
+  const handleAICall = () => {
+    if (!selectedVisit) return
+    // Simulate AI call
+    setIsAICallOpen(false)
+    toast.loading("AI calling patient...", { duration: 2000 })
+    setTimeout(() => {
+      const responses = [
+        "Confirmed attendance",
+        "Patient requested callback",
+        "Left voicemail",
+        "No answer - will retry",
+      ]
+      const randomResponse = responses[Math.floor(Math.random() * responses.length)]
+      setVisits(
+        visits.map((v) =>
+          v.id === selectedVisit.id
+            ? {
+                ...v,
+                status: randomResponse === "Confirmed attendance" ? "confirmed" : v.status,
+                aiCallResult: randomResponse,
+              }
+            : v
+        )
+      )
+      toast.success(`AI call completed: ${randomResponse}`)
+      setSelectedVisit(null)
+    }, 2000)
+  }
+
+  const handleSendEmail = () => {
+    if (!selectedVisit) return
+    setIsEmailOpen(false)
+    setEmailContent("")
+    toast.success(`Email sent to ${selectedVisit.patient.name}`)
+    setSelectedVisit(null)
+  }
+
+  const openReschedule = (visit: Visit) => {
+    setSelectedVisit(visit)
+    setRescheduleData({ date: "", time: "", reason: "" })
+    setIsRescheduleOpen(true)
+  }
+
+  const openCancel = (visit: Visit) => {
+    setSelectedVisit(visit)
+    setIsCancelOpen(true)
+  }
+
+  const openAICall = (visit: Visit) => {
+    setSelectedVisit(visit)
+    setIsAICallOpen(true)
+  }
+
+  const openEmail = (visit: Visit) => {
+    setSelectedVisit(visit)
+    setEmailContent(
+      `Dear ${visit.patient.name},\n\nThis is a reminder about your upcoming visit scheduled for ${visit.date} at ${visit.time}.\n\nVisit Type: ${visit.visitType}\nStudy: ${visit.study}\n\nPlease confirm your attendance or contact us if you need to reschedule.\n\nBest regards,\nClinical Trial Team`
+    )
+    setIsEmailOpen(true)
+  }
+
+  const openDetail = (visit: Visit) => {
+    setSelectedVisit(visit)
+    setIsDetailOpen(true)
   }
 
   return (
@@ -281,96 +432,99 @@ export default function VisitsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredVisits.map((visit) => (
-                      <TableRow key={visit.id}>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <Avatar className="size-8">
-                              <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                                {visit.patient.initials}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <div className="font-medium">{visit.patient.name}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {visit.patient.id}
-                              </div>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm">{visit.study}</span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm">{visit.visitType}</span>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">{visit.date}</div>
-                          <div className="text-xs text-muted-foreground">{visit.time}</div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            className={
-                              statusStyles[visit.status as keyof typeof statusStyles].className
-                            }
-                          >
-                            {statusStyles[visit.status as keyof typeof statusStyles].label}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm text-muted-foreground line-clamp-1 max-w-[200px]">
-                            {visit.aiCallResult || "—"}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="size-8">
-                                <MoreHorizontal className="size-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setSelectedVisit(visit)
-                                  setIsDetailOpen(true)
-                                }}
-                              >
-                                View Details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <Check className="mr-2 size-4" />
-                                Confirm Visit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setSelectedVisit(visit)
-                                  setIsRescheduleOpen(true)
-                                }}
-                              >
-                                <Clock className="mr-2 size-4" />
-                                Reschedule
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <Phone className="mr-2 size-4" />
-                                AI Voice Call
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <Mail className="mr-2 size-4" />
-                                Generate Email
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem className="text-destructive">
-                                <X className="mr-2 size-4" />
-                                Cancel Visit
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                    {filteredVisits.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                          No visits found
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ) : (
+                      filteredVisits.map((visit) => (
+                        <TableRow key={visit.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <Avatar className="size-8">
+                                <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                                  {visit.patient.initials}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <div className="font-medium">{visit.patient.name}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {visit.patient.id}
+                                </div>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm">{visit.study}</span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm">{visit.visitType}</span>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm">{visit.date}</div>
+                            <div className="text-xs text-muted-foreground">{visit.time}</div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={statusStyles[visit.status].className}>
+                              {statusStyles[visit.status].label}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm text-muted-foreground line-clamp-1 max-w-[200px]">
+                              {visit.aiCallResult || "—"}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="size-8">
+                                  <MoreHorizontal className="size-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => openDetail(visit)}>
+                                  View Details
+                                </DropdownMenuItem>
+                                {visit.status !== "confirmed" && visit.status !== "cancelled" && (
+                                  <DropdownMenuItem onClick={() => handleConfirm(visit)}>
+                                    <Check className="mr-2 size-4" />
+                                    Confirm Visit
+                                  </DropdownMenuItem>
+                                )}
+                                {visit.status !== "cancelled" && (
+                                  <DropdownMenuItem onClick={() => openReschedule(visit)}>
+                                    <Clock className="mr-2 size-4" />
+                                    Reschedule
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuItem onClick={() => openAICall(visit)}>
+                                  <Bot className="mr-2 size-4" />
+                                  AI Voice Call
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => openEmail(visit)}>
+                                  <Mail className="mr-2 size-4" />
+                                  Send Email
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                {visit.status !== "cancelled" && (
+                                  <DropdownMenuItem
+                                    className="text-destructive"
+                                    onClick={() => openCancel(visit)}
+                                  >
+                                    <X className="mr-2 size-4" />
+                                    Cancel Visit
+                                  </DropdownMenuItem>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
@@ -398,7 +552,7 @@ export default function VisitsPage() {
                   <div>
                     <div className="font-medium">{selectedVisit.patient.name}</div>
                     <div className="text-sm text-muted-foreground">
-                      {selectedVisit.patient.id} • {selectedVisit.study}
+                      {selectedVisit.patient.id} | {selectedVisit.study}
                     </div>
                   </div>
                 </div>
@@ -413,12 +567,8 @@ export default function VisitsPage() {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Status</p>
-                    <Badge
-                      className={
-                        statusStyles[selectedVisit.status as keyof typeof statusStyles].className
-                      }
-                    >
-                      {statusStyles[selectedVisit.status as keyof typeof statusStyles].label}
+                    <Badge className={statusStyles[selectedVisit.status].className}>
+                      {statusStyles[selectedVisit.status].label}
                     </Badge>
                   </div>
                   <div>
@@ -448,7 +598,12 @@ export default function VisitsPage() {
               <Button variant="outline" onClick={() => setIsDetailOpen(false)}>
                 Close
               </Button>
-              <Button>
+              <Button
+                onClick={() => {
+                  setIsDetailOpen(false)
+                  if (selectedVisit) openEmail(selectedVisit)
+                }}
+              >
                 <Mail className="mr-2 size-4" />
                 Send Reminder
               </Button>
@@ -462,40 +617,150 @@ export default function VisitsPage() {
             <DialogHeader>
               <DialogTitle>Reschedule Visit</DialogTitle>
               <DialogDescription>
-                Select a new date and time for this visit.
+                Select a new date and time for {selectedVisit?.patient.name}'s visit.
               </DialogDescription>
             </DialogHeader>
             <FieldGroup className="py-4">
               <Field>
-                <FieldLabel>New Date</FieldLabel>
-                <Input type="date" />
+                <FieldLabel>New Date *</FieldLabel>
+                <Input
+                  type="date"
+                  value={rescheduleData.date}
+                  onChange={(e) => setRescheduleData({ ...rescheduleData, date: e.target.value })}
+                />
               </Field>
               <Field>
                 <FieldLabel>New Time</FieldLabel>
-                <Select>
+                <Select
+                  value={rescheduleData.time}
+                  onValueChange={(v) => setRescheduleData({ ...rescheduleData, time: v })}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select time" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="09:00">09:00 AM</SelectItem>
-                    <SelectItem value="10:00">10:00 AM</SelectItem>
-                    <SelectItem value="11:00">11:00 AM</SelectItem>
-                    <SelectItem value="14:00">02:00 PM</SelectItem>
-                    <SelectItem value="15:00">03:00 PM</SelectItem>
+                    <SelectItem value="09:00 AM">09:00 AM</SelectItem>
+                    <SelectItem value="10:00 AM">10:00 AM</SelectItem>
+                    <SelectItem value="11:00 AM">11:00 AM</SelectItem>
+                    <SelectItem value="02:00 PM">02:00 PM</SelectItem>
+                    <SelectItem value="03:00 PM">03:00 PM</SelectItem>
                   </SelectContent>
                 </Select>
               </Field>
               <Field>
                 <FieldLabel>Reason</FieldLabel>
-                <Textarea placeholder="Reason for rescheduling..." rows={3} />
+                <Textarea
+                  placeholder="Reason for rescheduling..."
+                  rows={3}
+                  value={rescheduleData.reason}
+                  onChange={(e) => setRescheduleData({ ...rescheduleData, reason: e.target.value })}
+                />
               </Field>
             </FieldGroup>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsRescheduleOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={() => setIsRescheduleOpen(false)}>
-                Reschedule
+              <Button onClick={handleReschedule}>Reschedule</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Cancel Confirmation */}
+        <AlertDialog open={isCancelOpen} onOpenChange={setIsCancelOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Cancel Visit</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to cancel {selectedVisit?.patient.name}'s visit on{" "}
+                {selectedVisit?.date}? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Keep Visit</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleCancel}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Cancel Visit
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* AI Call Dialog */}
+        <Dialog open={isAICallOpen} onOpenChange={setIsAICallOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>AI Voice Call</DialogTitle>
+              <DialogDescription>
+                Initiate an AI-powered call to {selectedVisit?.patient.name} to confirm their visit.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-6">
+              <div className="flex flex-col items-center justify-center gap-4 rounded-lg border p-6">
+                <div className="flex size-16 items-center justify-center rounded-full bg-primary/10">
+                  <Bot className="size-8 text-primary" />
+                </div>
+                <div className="text-center">
+                  <p className="font-medium">{selectedVisit?.patient.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Visit: {selectedVisit?.date} at {selectedVisit?.time}
+                  </p>
+                </div>
+                <p className="text-sm text-muted-foreground text-center">
+                  The AI will call the patient to confirm their attendance and record the response.
+                </p>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsAICallOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleAICall}>
+                <Phone className="mr-2 size-4" />
+                Start Call
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Email Dialog */}
+        <Dialog open={isEmailOpen} onOpenChange={setIsEmailOpen}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Send Email Reminder</DialogTitle>
+              <DialogDescription>
+                Send an email to {selectedVisit?.patient.name}.
+              </DialogDescription>
+            </DialogHeader>
+            <FieldGroup className="py-4">
+              <Field>
+                <FieldLabel>To</FieldLabel>
+                <Input value={`${selectedVisit?.patient.name} <patient@email.com>`} disabled />
+              </Field>
+              <Field>
+                <FieldLabel>Subject</FieldLabel>
+                <Input
+                  defaultValue={`Visit Reminder - ${selectedVisit?.visitType} on ${selectedVisit?.date}`}
+                />
+              </Field>
+              <Field>
+                <FieldLabel>Message</FieldLabel>
+                <Textarea
+                  rows={8}
+                  value={emailContent}
+                  onChange={(e) => setEmailContent(e.target.value)}
+                />
+              </Field>
+            </FieldGroup>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsEmailOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSendEmail}>
+                <Mail className="mr-2 size-4" />
+                Send Email
               </Button>
             </DialogFooter>
           </DialogContent>

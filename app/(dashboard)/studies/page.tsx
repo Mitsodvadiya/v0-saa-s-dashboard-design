@@ -1,7 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { FileText, MoreHorizontal, Plus, Search, Upload, Users, Calendar } from "lucide-react"
+import Link from "next/link"
+import { Archive, Edit2, Eye, FileText, MoreHorizontal, Plus, Search, Upload, Users, Calendar } from "lucide-react"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -24,8 +25,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import {
   Select,
   SelectContent,
@@ -35,8 +45,24 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { FieldGroup, Field, FieldLabel } from "@/components/ui/field"
+import { toast } from "sonner"
 
-const studies = [
+interface Study {
+  id: string
+  name: string
+  sponsor: string
+  phase: string
+  status: "active" | "recruiting" | "completed" | "paused"
+  enrolled: number
+  target: number
+  startDate: string
+  endDate: string
+  description: string
+  visits: number
+  sites: number
+}
+
+const initialStudies: Study[] = [
   {
     id: "STD-001",
     name: "BEACON-2024",
@@ -117,9 +143,21 @@ const statusStyles = {
 }
 
 export default function StudiesPage() {
+  const [studies, setStudies] = useState<Study[]>(initialStudies)
   const [searchQuery, setSearchQuery] = useState("")
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isAddOpen, setIsAddOpen] = useState(false)
+  const [isEditOpen, setIsEditOpen] = useState(false)
+  const [isViewOpen, setIsViewOpen] = useState(false)
+  const [isArchiveOpen, setIsArchiveOpen] = useState(false)
   const [selectedTab, setSelectedTab] = useState("all")
+  const [selectedStudy, setSelectedStudy] = useState<Study | null>(null)
+  const [formData, setFormData] = useState({
+    name: "",
+    sponsor: "",
+    phase: "",
+    target: "",
+    description: "",
+  })
 
   const filteredStudies = studies.filter((study) => {
     const matchesSearch =
@@ -128,6 +166,90 @@ export default function StudiesPage() {
     const matchesTab = selectedTab === "all" || study.status === selectedTab
     return matchesSearch && matchesTab
   })
+
+  const resetForm = () => {
+    setFormData({ name: "", sponsor: "", phase: "", target: "", description: "" })
+  }
+
+  const handleAdd = () => {
+    if (!formData.name || !formData.sponsor || !formData.phase) {
+      toast.error("Please fill in required fields")
+      return
+    }
+    const newStudy: Study = {
+      id: `STD-${String(studies.length + 1).padStart(3, "0")}`,
+      name: formData.name,
+      sponsor: formData.sponsor,
+      phase: formData.phase,
+      status: "recruiting",
+      enrolled: 0,
+      target: parseInt(formData.target) || 100,
+      startDate: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+      endDate: "TBD",
+      description: formData.description,
+      visits: 0,
+      sites: 1,
+    }
+    setStudies([...studies, newStudy])
+    setIsAddOpen(false)
+    resetForm()
+    toast.success("Study created successfully")
+  }
+
+  const handleEdit = () => {
+    if (!selectedStudy || !formData.name) {
+      toast.error("Please fill in required fields")
+      return
+    }
+    setStudies(
+      studies.map((s) =>
+        s.id === selectedStudy.id
+          ? {
+              ...s,
+              name: formData.name,
+              sponsor: formData.sponsor || s.sponsor,
+              phase: formData.phase || s.phase,
+              target: parseInt(formData.target) || s.target,
+              description: formData.description || s.description,
+            }
+          : s
+      )
+    )
+    setIsEditOpen(false)
+    setSelectedStudy(null)
+    resetForm()
+    toast.success("Study updated successfully")
+  }
+
+  const handleArchive = () => {
+    if (!selectedStudy) return
+    setStudies(studies.filter((s) => s.id !== selectedStudy.id))
+    setIsArchiveOpen(false)
+    setSelectedStudy(null)
+    toast.success("Study archived successfully")
+  }
+
+  const openEdit = (study: Study) => {
+    setSelectedStudy(study)
+    setFormData({
+      name: study.name,
+      sponsor: study.sponsor,
+      phase: study.phase,
+      target: String(study.target),
+      description: study.description,
+    })
+    setIsEditOpen(true)
+  }
+
+  const openView = (study: Study) => {
+    setSelectedStudy(study)
+    setIsViewOpen(true)
+  }
+
+  const openArchive = (study: Study) => {
+    setSelectedStudy(study)
+    setIsArchiveOpen(true)
+  }
 
   return (
     <>
@@ -143,86 +265,10 @@ export default function StudiesPage() {
               className="w-full sm:w-80 pl-8"
             />
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 size-4" />
-                Create Study
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-lg">
-              <DialogHeader>
-                <DialogTitle>Create New Study</DialogTitle>
-                <DialogDescription>
-                  Enter study details and upload the protocol document.
-                </DialogDescription>
-              </DialogHeader>
-              <FieldGroup className="py-4">
-                <Field>
-                  <FieldLabel htmlFor="studyName">Study Title</FieldLabel>
-                  <Input id="studyName" placeholder="e.g., BEACON-2024" />
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="sponsor">Sponsor</FieldLabel>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select sponsor" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pfizer">Pfizer Inc.</SelectItem>
-                      <SelectItem value="novartis">Novartis AG</SelectItem>
-                      <SelectItem value="jnj">Johnson & Johnson</SelectItem>
-                      <SelectItem value="roche">Roche Holding AG</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </Field>
-                <div className="grid grid-cols-2 gap-4">
-                  <Field>
-                    <FieldLabel htmlFor="phase">Phase</FieldLabel>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select phase" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="phase1">Phase I</SelectItem>
-                        <SelectItem value="phase2">Phase II</SelectItem>
-                        <SelectItem value="phase3">Phase III</SelectItem>
-                        <SelectItem value="phase4">Phase IV</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor="target">Target Enrollment</FieldLabel>
-                    <Input id="target" type="number" placeholder="200" />
-                  </Field>
-                </div>
-                <Field>
-                  <FieldLabel htmlFor="description">Description</FieldLabel>
-                  <Textarea id="description" placeholder="Brief study description..." rows={3} />
-                </Field>
-                <Field>
-                  <FieldLabel>Protocol Document</FieldLabel>
-                  <div className="mt-1 flex items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25 p-6 transition-colors hover:border-muted-foreground/50">
-                    <div className="text-center">
-                      <Upload className="mx-auto size-8 text-muted-foreground" />
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        Click to upload or drag and drop
-                      </p>
-                      <p className="text-xs text-muted-foreground">PDF up to 10MB</p>
-                    </div>
-                  </div>
-                </Field>
-              </FieldGroup>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={() => setIsDialogOpen(false)}>
-                  Create Study
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <Button onClick={() => { resetForm(); setIsAddOpen(true); }}>
+            <Plus className="mr-2 size-4" />
+            Create Study
+          </Button>
         </div>
 
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
@@ -233,90 +279,393 @@ export default function StudiesPage() {
             <TabsTrigger value="completed">Completed</TabsTrigger>
           </TabsList>
           <TabsContent value={selectedTab} className="mt-6">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {filteredStudies.map((study) => {
-                const progress = Math.round((study.enrolled / study.target) * 100)
-                return (
-                  <Card key={study.id} className="shadow-sm hover:shadow-md transition-shadow">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <CardTitle className="text-base">{study.name}</CardTitle>
-                          <CardDescription className="mt-1">{study.sponsor}</CardDescription>
-                        </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="size-8">
-                              <MoreHorizontal className="size-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>View Details</DropdownMenuItem>
-                            <DropdownMenuItem>Edit Study</DropdownMenuItem>
-                            <DropdownMenuItem>View Patients</DropdownMenuItem>
-                            <DropdownMenuItem>Download Protocol</DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-destructive">
-                              Archive Study
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                      <div className="flex gap-2 mt-2">
-                        <Badge variant="outline" className="text-xs">
-                          {study.phase}
-                        </Badge>
-                        <Badge className={statusStyles[study.status as keyof typeof statusStyles]}>
-                          {study.status.charAt(0).toUpperCase() + study.status.slice(1)}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {study.description}
-                      </p>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Enrollment</span>
-                          <span className="font-medium">
-                            {study.enrolled}/{study.target} ({progress}%)
-                          </span>
-                        </div>
-                        <Progress value={progress} className="h-2" />
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 pt-2 border-t">
-                        <div className="text-center">
-                          <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
-                            <FileText className="size-3" />
-                            Visits
+            {filteredStudies.length === 0 ? (
+              <Card className="shadow-sm">
+                <CardContent className="py-12 text-center text-muted-foreground">
+                  No studies found
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {filteredStudies.map((study) => {
+                  const progress = Math.round((study.enrolled / study.target) * 100)
+                  return (
+                    <Card key={study.id} className="shadow-sm hover:shadow-md transition-shadow">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <CardTitle className="text-base">{study.name}</CardTitle>
+                            <CardDescription className="mt-1">{study.sponsor}</CardDescription>
                           </div>
-                          <div className="text-sm font-medium">{study.visits}</div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="size-8">
+                                <MoreHorizontal className="size-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => openView(study)}>
+                                <Eye className="mr-2 size-4" />
+                                View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => openEdit(study)}>
+                                <Edit2 className="mr-2 size-4" />
+                                Edit Study
+                              </DropdownMenuItem>
+                              <DropdownMenuItem asChild>
+                                <Link href={`/patients?study=${study.name}`}>
+                                  <Users className="mr-2 size-4" />
+                                  View Patients
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <FileText className="mr-2 size-4" />
+                                Download Protocol
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={() => openArchive(study)}
+                              >
+                                <Archive className="mr-2 size-4" />
+                                Archive Study
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
-                        <div className="text-center">
-                          <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
-                            <Users className="size-3" />
-                            Sites
-                          </div>
-                          <div className="text-sm font-medium">{study.sites}</div>
+                        <div className="flex gap-2 mt-2">
+                          <Badge variant="outline" className="text-xs">
+                            {study.phase}
+                          </Badge>
+                          <Badge className={statusStyles[study.status]}>
+                            {study.status.charAt(0).toUpperCase() + study.status.slice(1)}
+                          </Badge>
                         </div>
-                        <div className="text-center">
-                          <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
-                            <Calendar className="size-3" />
-                            End
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {study.description}
+                        </p>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Enrollment</span>
+                            <span className="font-medium">
+                              {study.enrolled}/{study.target} ({progress}%)
+                            </span>
                           </div>
-                          <div className="text-sm font-medium">
-                            {study.endDate.split(",")[0].split(" ")[0]}
+                          <Progress value={progress} className="h-2" />
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 pt-2 border-t">
+                          <div className="text-center">
+                            <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+                              <FileText className="size-3" />
+                              Visits
+                            </div>
+                            <div className="text-sm font-medium">{study.visits}</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+                              <Users className="size-3" />
+                              Sites
+                            </div>
+                            <div className="text-sm font-medium">{study.sites}</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+                              <Calendar className="size-3" />
+                              End
+                            </div>
+                            <div className="text-sm font-medium">
+                              {study.endDate.split(",")[0].split(" ")[0]}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )
-              })}
-            </div>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Add Study Dialog */}
+      <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Create New Study</DialogTitle>
+            <DialogDescription>
+              Enter study details and upload the protocol document.
+            </DialogDescription>
+          </DialogHeader>
+          <FieldGroup className="py-4">
+            <Field>
+              <FieldLabel htmlFor="studyName">Study Title *</FieldLabel>
+              <Input
+                id="studyName"
+                placeholder="e.g., BEACON-2024"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="sponsor">Sponsor *</FieldLabel>
+              <Select
+                value={formData.sponsor}
+                onValueChange={(v) => setFormData({ ...formData, sponsor: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select sponsor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Pfizer Inc.">Pfizer Inc.</SelectItem>
+                  <SelectItem value="Novartis AG">Novartis AG</SelectItem>
+                  <SelectItem value="Johnson & Johnson">Johnson & Johnson</SelectItem>
+                  <SelectItem value="Roche Holding AG">Roche Holding AG</SelectItem>
+                  <SelectItem value="Merck & Co.">Merck & Co.</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+            <div className="grid grid-cols-2 gap-4">
+              <Field>
+                <FieldLabel htmlFor="phase">Phase *</FieldLabel>
+                <Select
+                  value={formData.phase}
+                  onValueChange={(v) => setFormData({ ...formData, phase: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select phase" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Phase I">Phase I</SelectItem>
+                    <SelectItem value="Phase II">Phase II</SelectItem>
+                    <SelectItem value="Phase III">Phase III</SelectItem>
+                    <SelectItem value="Phase IV">Phase IV</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="target">Target Enrollment</FieldLabel>
+                <Input
+                  id="target"
+                  type="number"
+                  placeholder="200"
+                  value={formData.target}
+                  onChange={(e) => setFormData({ ...formData, target: e.target.value })}
+                />
+              </Field>
+            </div>
+            <Field>
+              <FieldLabel htmlFor="description">Description</FieldLabel>
+              <Textarea
+                id="description"
+                placeholder="Brief study description..."
+                rows={3}
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              />
+            </Field>
+            <Field>
+              <FieldLabel>Protocol Document</FieldLabel>
+              <div className="mt-1 flex items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25 p-6 transition-colors hover:border-muted-foreground/50 cursor-pointer">
+                <div className="text-center">
+                  <Upload className="mx-auto size-8 text-muted-foreground" />
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Click to upload or drag and drop
+                  </p>
+                  <p className="text-xs text-muted-foreground">PDF up to 10MB</p>
+                </div>
+              </div>
+            </Field>
+          </FieldGroup>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAdd}>Create Study</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Study Dialog */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit Study</DialogTitle>
+            <DialogDescription>Update the study details.</DialogDescription>
+          </DialogHeader>
+          <FieldGroup className="py-4">
+            <Field>
+              <FieldLabel>Study Title *</FieldLabel>
+              <Input
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              />
+            </Field>
+            <Field>
+              <FieldLabel>Sponsor</FieldLabel>
+              <Select
+                value={formData.sponsor}
+                onValueChange={(v) => setFormData({ ...formData, sponsor: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Pfizer Inc.">Pfizer Inc.</SelectItem>
+                  <SelectItem value="Novartis AG">Novartis AG</SelectItem>
+                  <SelectItem value="Johnson & Johnson">Johnson & Johnson</SelectItem>
+                  <SelectItem value="Roche Holding AG">Roche Holding AG</SelectItem>
+                  <SelectItem value="Merck & Co.">Merck & Co.</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+            <div className="grid grid-cols-2 gap-4">
+              <Field>
+                <FieldLabel>Phase</FieldLabel>
+                <Select
+                  value={formData.phase}
+                  onValueChange={(v) => setFormData({ ...formData, phase: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Phase I">Phase I</SelectItem>
+                    <SelectItem value="Phase II">Phase II</SelectItem>
+                    <SelectItem value="Phase III">Phase III</SelectItem>
+                    <SelectItem value="Phase IV">Phase IV</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+              <Field>
+                <FieldLabel>Target Enrollment</FieldLabel>
+                <Input
+                  type="number"
+                  value={formData.target}
+                  onChange={(e) => setFormData({ ...formData, target: e.target.value })}
+                />
+              </Field>
+            </div>
+            <Field>
+              <FieldLabel>Description</FieldLabel>
+              <Textarea
+                rows={3}
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              />
+            </Field>
+          </FieldGroup>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleEdit}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Study Dialog */}
+      <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Study Details</DialogTitle>
+            <DialogDescription>{selectedStudy?.id}</DialogDescription>
+          </DialogHeader>
+          {selectedStudy && (
+            <div className="space-y-6 py-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold">{selectedStudy.name}</h3>
+                  <p className="text-muted-foreground">{selectedStudy.sponsor}</p>
+                </div>
+                <div className="flex gap-2">
+                  <Badge variant="outline">{selectedStudy.phase}</Badge>
+                  <Badge className={statusStyles[selectedStudy.status]}>
+                    {selectedStudy.status.charAt(0).toUpperCase() + selectedStudy.status.slice(1)}
+                  </Badge>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground">{selectedStudy.description}</p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span>Enrollment Progress</span>
+                  <span className="font-medium">
+                    {selectedStudy.enrolled}/{selectedStudy.target} (
+                    {Math.round((selectedStudy.enrolled / selectedStudy.target) * 100)}%)
+                  </span>
+                </div>
+                <Progress
+                  value={Math.round((selectedStudy.enrolled / selectedStudy.target) * 100)}
+                  className="h-3"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                <div className="rounded-lg border p-3 text-center">
+                  <p className="text-2xl font-bold text-primary">{selectedStudy.enrolled}</p>
+                  <p className="text-xs text-muted-foreground">Enrolled</p>
+                </div>
+                <div className="rounded-lg border p-3 text-center">
+                  <p className="text-2xl font-bold text-primary">{selectedStudy.visits}</p>
+                  <p className="text-xs text-muted-foreground">Visits</p>
+                </div>
+                <div className="rounded-lg border p-3 text-center">
+                  <p className="text-2xl font-bold text-primary">{selectedStudy.sites}</p>
+                  <p className="text-xs text-muted-foreground">Sites</p>
+                </div>
+                <div className="rounded-lg border p-3 text-center">
+                  <p className="text-2xl font-bold text-primary">{selectedStudy.target}</p>
+                  <p className="text-xs text-muted-foreground">Target</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4 rounded-lg border p-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Start Date</p>
+                  <p className="font-medium">{selectedStudy.startDate}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">End Date</p>
+                  <p className="font-medium">{selectedStudy.endDate}</p>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsViewOpen(false)}>
+              Close
+            </Button>
+            <Button asChild>
+              <Link href={`/patients?study=${selectedStudy?.name}`}>
+                <Users className="mr-2 size-4" />
+                View Patients
+              </Link>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Archive Confirmation */}
+      <AlertDialog open={isArchiveOpen} onOpenChange={setIsArchiveOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Archive Study</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to archive {selectedStudy?.name}? This action will move the
+              study to the archive and it will no longer appear in active lists.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleArchive}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Archive
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }
