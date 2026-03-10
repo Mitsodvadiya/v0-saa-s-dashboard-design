@@ -176,7 +176,7 @@ export default function TasksPage() {
                     </div>
 
                     <TabsContent value={selectedTab} className="mt-6">
-                        <div className="grid gap-4">
+                        <div className="grid gap-6">
                             {filteredTasks.length === 0 ? (
                                 <Card className="border-dashed">
                                     <CardContent className="py-12 text-center text-muted-foreground italic font-medium">
@@ -186,9 +186,9 @@ export default function TasksPage() {
                             ) : (
                                 filteredTasks.map((task) => (
                                     <Card key={task.id} className={`group hover:shadow-md transition-all duration-300 border-l-4 ${task.priority === 'High' ? 'border-l-warning' :
-                                            task.priority === 'Medium' ? 'border-l-info' : 'border-l-muted'
+                                        task.priority === 'Medium' ? 'border-l-info' : 'border-l-muted'
                                         }`}>
-                                        <CardContent className="p-4 flex items-start gap-4">
+                                        <CardContent className="p-6 flex items-start gap-4">
                                             <Button
                                                 variant="ghost"
                                                 size="icon"

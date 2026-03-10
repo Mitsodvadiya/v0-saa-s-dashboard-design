@@ -5,28 +5,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 
 const data = [
-  { name: "Completed", value: 456, fill: "var(--color-chart-2)" },
-  { name: "Confirmed", value: 234, fill: "var(--color-chart-1)" },
-  { name: "Pending", value: 89, fill: "var(--color-chart-3)" },
-  { name: "Missed", value: 23, fill: "var(--color-chart-4)" },
+  { name: "Completed", value: 456, fill: "var(--success)" },
+  { name: "Confirmed", value: 234, fill: "var(--primary)" },
+  { name: "Pending", value: 89, fill: "var(--warning)" },
+  { name: "Missed", value: 23, fill: "var(--destructive)" },
 ]
 
 const chartConfig = {
   completed: {
     label: "Completed",
-    color: "var(--color-chart-2)",
+    color: "var(--success)",
   },
   confirmed: {
     label: "Confirmed",
-    color: "var(--color-chart-1)",
+    color: "var(--primary)",
   },
   pending: {
     label: "Pending",
-    color: "var(--color-chart-3)",
+    color: "var(--warning)",
   },
   missed: {
     label: "Missed",
-    color: "var(--color-chart-4)",
+    color: "var(--destructive)",
   },
 }
 
@@ -49,24 +49,29 @@ export function VisitStatusChart() {
               cy="50%"
               innerRadius={60}
               outerRadius={100}
-              paddingAngle={2}
+              paddingAngle={4}
               dataKey="value"
+              strokeWidth={0}
             >
               {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.fill} />
+                <Cell
+                  key={`cell-${index}`}
+                  fill={entry.fill}
+                  className="hover:opacity-80 transition-opacity duration-300"
+                />
               ))}
             </Pie>
           </PieChart>
         </ChartContainer>
-        <div className="mt-4 grid grid-cols-2 gap-4">
+        <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 pt-4 border-t">
           {data.map((item) => (
             <div key={item.name} className="flex items-center gap-2">
               <div
-                className="size-3 rounded-full"
+                className="size-2 rounded-full shadow-sm"
                 style={{ backgroundColor: item.fill }}
               />
-              <span className="text-sm text-muted-foreground">{item.name}</span>
-              <span className="ml-auto text-sm font-medium">{item.value}</span>
+              <span className="text-xs text-muted-foreground font-medium">{item.name}</span>
+              <span className="ml-auto text-xs font-bold tabular-nums">{item.value}</span>
             </div>
           ))}
         </div>

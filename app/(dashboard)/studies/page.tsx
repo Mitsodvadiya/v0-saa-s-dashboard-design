@@ -287,11 +287,11 @@ export default function StudiesPage() {
                   return (
                     <Link key={study.id} href={`/studies/${study.id}`}>
                       <Card className="shadow-sm hover:shadow-md transition-shadow cursor-pointer h-full">
-                        <CardHeader className="pb-3">
+                        <CardHeader>
                           <div className="flex items-start justify-between">
                             <div>
                               <CardTitle className="text-base">{study.name}</CardTitle>
-                              <CardDescription className="mt-1">{study.sponsor}</CardDescription>
+                              <CardDescription>{study.sponsor}</CardDescription>
                             </div>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -331,12 +331,12 @@ export default function StudiesPage() {
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div>
-                          <div className="flex gap-2 mt-2">
-                            <Badge variant="outline" className="text-xs">
+                          <div className="flex gap-2">
+                            <Badge variant="outline" className="text-[10px] h-5 px-1.5 uppercase">
                               {study.phase}
                             </Badge>
-                            <Badge className={statusStyles[study.status]}>
-                              {study.status.charAt(0).toUpperCase() + study.status.slice(1)}
+                            <Badge className={`${statusStyles[study.status]} text-[10px] h-5 px-1.5 uppercase font-bold`}>
+                              {study.status}
                             </Badge>
                           </div>
                         </CardHeader>
@@ -353,27 +353,27 @@ export default function StudiesPage() {
                             </div>
                             <Progress value={progress} className="h-2" />
                           </div>
-                          <div className="grid grid-cols-3 gap-2 pt-2 border-t">
+                          <div className="grid grid-cols-3 gap-4 pt-4 border-t">
                             <div className="text-center">
-                              <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+                              <div className="flex items-center justify-center gap-1 text-[10px] text-muted-foreground uppercase font-bold">
                                 <FileText className="size-3" />
                                 Visits
                               </div>
-                              <div className="text-sm font-medium">{study.visits}</div>
+                              <div className="text-sm font-semibold">{study.visits}</div>
                             </div>
-                            <div className="text-center">
-                              <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+                            <div className="text-center border-x">
+                              <div className="flex items-center justify-center gap-1 text-[10px] text-muted-foreground uppercase font-bold">
                                 <Users className="size-3" />
                                 Sites
                               </div>
-                              <div className="text-sm font-medium">{study.sites}</div>
+                              <div className="text-sm font-semibold">{study.sites}</div>
                             </div>
                             <div className="text-center">
-                              <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+                              <div className="flex items-center justify-center gap-1 text-[10px] text-muted-foreground uppercase font-bold">
                                 <Calendar className="size-3" />
                                 End
                               </div>
-                              <div className="text-sm font-medium">
+                              <div className="text-sm font-semibold">
                                 {study.endDate.split(",")[0].split(" ")[0]}
                               </div>
                             </div>

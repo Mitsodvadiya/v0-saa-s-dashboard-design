@@ -275,7 +275,7 @@ export default function StudyDetailsPage({ params }: { params: Promise<{ id: str
 
     return (
         <>
-            <div className="flex items-center gap-4 border-b bg-background/95 p-4 backdrop-blur sticky top-0 z-10">
+            <div className="flex items-center gap-4 border-b bg-background/95 px-6 py-4 backdrop-blur sticky top-0 z-10">
                 <Button variant="ghost" size="icon" asChild>
                     <Link href="/studies">
                         <ArrowLeft className="size-4" />
@@ -451,12 +451,12 @@ export default function StudyDetailsPage({ params }: { params: Promise<{ id: str
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="pl-6">Patient</TableHead>
+                                    <TableHead>Patient</TableHead>
                                     <TableHead>Enrolled</TableHead>
                                     <TableHead>Status</TableHead>
                                     <TableHead>Next Visit</TableHead>
                                     <TableHead>Compliance</TableHead>
-                                    <TableHead className="w-[50px] pr-6"></TableHead>
+                                    <TableHead className="w-[50px]"></TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -469,7 +469,7 @@ export default function StudyDetailsPage({ params }: { params: Promise<{ id: str
                                 ) : (
                                     studyPatients.map((patient) => (
                                         <TableRow key={patient.id} className="cursor-pointer hover:bg-muted/50">
-                                            <TableCell className="pl-6">
+                                            <TableCell>
                                                 <Link href={`/patients/${patient.id}`} className="flex items-center gap-3">
                                                     <Avatar className="size-8">
                                                         <AvatarFallback className="bg-primary/10 text-primary text-[10px]">
@@ -502,10 +502,10 @@ export default function StudyDetailsPage({ params }: { params: Promise<{ id: str
                                                     <div className="flex items-center gap-2">
                                                         <div
                                                             className={`size-1.5 rounded-full ${patient.compliance >= 90
-                                                                    ? "bg-success"
-                                                                    : patient.compliance >= 75
-                                                                        ? "bg-warning"
-                                                                        : "bg-destructive"
+                                                                ? "bg-success"
+                                                                : patient.compliance >= 75
+                                                                    ? "bg-warning"
+                                                                    : "bg-destructive"
                                                                 }`}
                                                         />
                                                         <span className="text-sm font-medium">{patient.compliance}%</span>
@@ -514,7 +514,7 @@ export default function StudyDetailsPage({ params }: { params: Promise<{ id: str
                                                     <span className="text-sm text-muted-foreground">—</span>
                                                 )}
                                             </TableCell>
-                                            <TableCell className="pr-6 text-right">
+                                            <TableCell className="text-right">
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
                                                         <Button variant="ghost" size="icon" className="size-8">

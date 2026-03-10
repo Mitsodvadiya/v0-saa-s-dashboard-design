@@ -22,11 +22,11 @@ const data = [
 const chartConfig = {
   enrolled: {
     label: "Enrolled",
-    color: "var(--color-chart-1)",
+    color: "var(--primary)",
   },
   target: {
     label: "Target",
-    color: "var(--color-chart-2)",
+    color: "var(--muted-foreground)",
   },
 }
 
@@ -42,37 +42,44 @@ export function RecruitmentChart() {
           <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="enrolledGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-chart-1)" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="var(--color-chart-1)" stopOpacity={0} />
+                <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.2} />
+                <stop offset="50%" stopColor="var(--primary)" stopOpacity={0.1} />
+                <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis 
-              dataKey="month" 
-              tickLine={false} 
+            <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
+            <XAxis
+              dataKey="month"
+              tickLine={false}
               axisLine={false}
-              className="text-xs fill-muted-foreground"
+              tickMargin={8}
+              className="text-[10px] fill-muted-foreground uppercase font-medium"
             />
-            <YAxis 
-              tickLine={false} 
+            <YAxis
+              tickLine={false}
               axisLine={false}
-              className="text-xs fill-muted-foreground"
+              tickMargin={8}
+              className="text-[10px] fill-muted-foreground font-medium"
             />
             <ChartTooltip content={<ChartTooltipContent />} />
             <Area
               type="monotone"
               dataKey="target"
-              stroke="var(--color-chart-2)"
-              strokeWidth={2}
-              strokeDasharray="5 5"
+              stroke="var(--muted-foreground)"
+              strokeWidth={1.5}
+              strokeDasharray="4 4"
               fill="transparent"
+              dot={false}
+              activeDot={false}
             />
             <Area
               type="monotone"
               dataKey="enrolled"
-              stroke="var(--color-chart-1)"
-              strokeWidth={2}
+              stroke="var(--primary)"
+              strokeWidth={2.5}
               fill="url(#enrolledGradient)"
+              dot={{ r: 3, fill: "var(--primary)", strokeWidth: 0 }}
+              activeDot={{ r: 5, strokeWidth: 0 }}
             />
           </AreaChart>
         </ChartContainer>

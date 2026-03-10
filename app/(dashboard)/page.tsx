@@ -23,7 +23,7 @@ export default function DashboardPage() {
           <div className="lg:col-span-2">
             <UpcomingVisitsTable />
           </div>
-          <div className="space-y-6">
+          <div className="flex flex-col gap-6">
             <StudyProgress />
             <TodoList />
           </div>

@@ -227,7 +227,7 @@ export default function SponsorDetailsPage({ params }: { params: Promise<{ id: s
 
     return (
         <>
-            <div className="flex items-center gap-4 border-b bg-background/95 p-4 backdrop-blur sticky top-0 z-10">
+            <div className="flex items-center gap-4 border-b bg-background/95 px-6 py-4 backdrop-blur sticky top-0 z-10">
                 <Button variant="ghost" size="icon" asChild>
                     <Link href="/sponsors">
                         <ArrowLeft className="size-4" />
@@ -364,12 +364,12 @@ export default function SponsorDetailsPage({ params }: { params: Promise<{ id: s
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="pl-6">Study Name</TableHead>
+                                    <TableHead>Study Name</TableHead>
                                     <TableHead>Phase</TableHead>
                                     <TableHead>Status</TableHead>
                                     <TableHead>Enrollment</TableHead>
                                     <TableHead>Launch Date</TableHead>
-                                    <TableHead className="w-[50px] pr-6"></TableHead>
+                                    <TableHead className="w-[50px]"></TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -384,7 +384,7 @@ export default function SponsorDetailsPage({ params }: { params: Promise<{ id: s
                                         const progress = Math.round((study.enrolled / study.target) * 100)
                                         return (
                                             <TableRow key={study.id} className="group cursor-pointer hover:bg-muted/50">
-                                                <TableCell className="pl-6">
+                                                <TableCell>
                                                     <Link href={`/studies/${study.id}`} className="block">
                                                         <div className="font-medium group-hover:text-primary transition-colors">{study.name}</div>
                                                         <div className="text-[10px] text-muted-foreground tracking-tight">{study.id}</div>
@@ -410,7 +410,7 @@ export default function SponsorDetailsPage({ params }: { params: Promise<{ id: s
                                                 <TableCell>
                                                     <span className="text-sm text-muted-foreground">{study.startDate}</span>
                                                 </TableCell>
-                                                <TableCell className="pr-6 text-right">
+                                                <TableCell className="text-right">
                                                     <DropdownMenu>
                                                         <DropdownMenuTrigger asChild>
                                                             <Button variant="ghost" size="icon" className="size-8">

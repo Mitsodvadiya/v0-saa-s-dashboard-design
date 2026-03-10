@@ -39,27 +39,25 @@ export function StatsCards() {
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {stats.map((stat) => (
         <Card key={stat.title} className="shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-sm font-medium text-muted-foreground leading-none">
               {stat.title}
             </CardTitle>
-            <stat.icon className={`size-4 ${
-              stat.trend === "warning" 
-                ? "text-warning" 
-                : stat.trend === "up" 
-                ? "text-success" 
-                : "text-muted-foreground"
-            }`} />
+            <stat.icon className={`size-4 ${stat.trend === "warning"
+                ? "text-warning"
+                : stat.trend === "up"
+                  ? "text-success"
+                  : "text-muted-foreground"
+              }`} />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">{stat.value}</div>
-            <p className={`text-xs mt-1 ${
-              stat.trend === "warning" 
-                ? "text-warning" 
-                : stat.trend === "up" 
-                ? "text-success" 
-                : "text-muted-foreground"
-            }`}>
+            <p className={`text-xs mt-1 ${stat.trend === "warning"
+                ? "text-warning"
+                : stat.trend === "up"
+                  ? "text-success"
+                  : "text-muted-foreground"
+              }`}>
               {stat.trend === "up" && <TrendingUp className="inline size-3 mr-1" />}
               {stat.change}
             </p>

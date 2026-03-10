@@ -14,6 +14,7 @@ import {
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
+import { ModeToggle } from "@/components/mode-toggle"
 
 interface DashboardHeaderProps {
   title: string
@@ -22,7 +23,7 @@ interface DashboardHeaderProps {
 
 export function DashboardHeader({ title, description }: DashboardHeaderProps) {
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between gap-4 border-b bg-card px-4">
+    <header className="flex h-16 shrink-0 items-center justify-between gap-4 border-b bg-card px-6">
       <div className="flex items-center gap-4">
         <SidebarTrigger className="-ml-1" />
         <Separator orientation="vertical" className="h-6" />
@@ -58,13 +59,16 @@ export function DashboardHeader({ title, description }: DashboardHeaderProps) {
             <DropdownMenuItem>Upload Document</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="size-4" />
-          <Badge className="absolute -top-1 -right-1 size-5 p-0 flex items-center justify-center text-xs">
-            3
-          </Badge>
-          <span className="sr-only">Notifications</span>
-        </Button>
+        <div className="flex items-center gap-1">
+          <ModeToggle />
+          <Button variant="ghost" size="icon" className="relative">
+            <Bell className="size-4" />
+            <Badge className="absolute -top-1 -right-1 size-5 p-0 flex items-center justify-center text-xs">
+              3
+            </Badge>
+            <span className="sr-only">Notifications</span>
+          </Button>
+        </div>
       </div>
     </header>
   )

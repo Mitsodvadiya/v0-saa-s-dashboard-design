@@ -49,10 +49,10 @@ const visitComplianceData = [
 ]
 
 const patientStatusData = [
-  { name: "Active", value: 456, fill: "var(--color-chart-2)" },
-  { name: "Screening", value: 89, fill: "var(--color-chart-1)" },
-  { name: "Completed", value: 234, fill: "var(--color-chart-3)" },
-  { name: "Withdrawn", value: 23, fill: "var(--color-chart-4)" },
+  { name: "Active", value: 456, fill: "var(--success)" },
+  { name: "Screening", value: 89, fill: "var(--primary)" },
+  { name: "Completed", value: 234, fill: "var(--chart-3)" },
+  { name: "Withdrawn", value: 23, fill: "var(--destructive)" },
 ]
 
 const sitePerformanceData = [
@@ -73,14 +73,14 @@ const aeData = [
 ]
 
 const chartConfig = {
-  enrolled: { label: "Enrolled", color: "var(--color-chart-1)" },
-  target: { label: "Target", color: "var(--color-chart-2)" },
-  screened: { label: "Screened", color: "var(--color-chart-3)" },
-  completed: { label: "Completed", color: "var(--color-chart-1)" },
-  scheduled: { label: "Scheduled", color: "var(--color-chart-2)" },
-  mild: { label: "Mild", color: "var(--color-chart-3)" },
-  moderate: { label: "Moderate", color: "var(--color-chart-4)" },
-  severe: { label: "Severe", color: "var(--color-destructive)" },
+  enrolled: { label: "Enrolled", color: "var(--primary)" },
+  target: { label: "Target", color: "var(--muted-foreground)" },
+  screened: { label: "Screened", color: "var(--chart-3)" },
+  completed: { label: "Completed", color: "var(--success)" },
+  scheduled: { label: "Scheduled", color: "var(--primary)" },
+  mild: { label: "Mild", color: "var(--chart-3)" },
+  moderate: { label: "Moderate", color: "var(--warning)" },
+  severe: { label: "Severe", color: "var(--destructive)" },
 }
 
 export default function AnalyticsPage() {
@@ -171,31 +171,47 @@ export default function AnalyticsPage() {
                   </CardHeader>
                   <CardContent>
                     <ChartContainer config={chartConfig} className="h-[300px] w-full">
-                      <AreaChart data={enrollmentData}>
+                      <AreaChart data={enrollmentData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                         <defs>
                           <linearGradient id="enrolledGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="var(--color-chart-1)" stopOpacity={0.3} />
-                            <stop offset="95%" stopColor="var(--color-chart-1)" stopOpacity={0} />
+                            <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.2} />
+                            <stop offset="50%" stopColor="var(--primary)" stopOpacity={0.1} />
+                            <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
                           </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                        <XAxis dataKey="month" tickLine={false} axisLine={false} />
-                        <YAxis tickLine={false} axisLine={false} />
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
+                        <XAxis
+                          dataKey="month"
+                          tickLine={false}
+                          axisLine={false}
+                          tickMargin={8}
+                          className="text-[10px] fill-muted-foreground uppercase font-medium"
+                        />
+                        <YAxis
+                          tickLine={false}
+                          axisLine={false}
+                          tickMargin={8}
+                          className="text-[10px] fill-muted-foreground font-medium"
+                        />
                         <ChartTooltip content={<ChartTooltipContent />} />
                         <Area
                           type="monotone"
                           dataKey="target"
-                          stroke="var(--color-chart-2)"
-                          strokeWidth={2}
-                          strokeDasharray="5 5"
+                          stroke="var(--muted-foreground)"
+                          strokeWidth={1.5}
+                          strokeDasharray="4 4"
                           fill="transparent"
+                          dot={false}
+                          activeDot={false}
                         />
                         <Area
                           type="monotone"
                           dataKey="enrolled"
-                          stroke="var(--color-chart-1)"
-                          strokeWidth={2}
+                          stroke="var(--primary)"
+                          strokeWidth={2.5}
                           fill="url(#enrolledGrad)"
+                          dot={{ r: 3, fill: "var(--primary)", strokeWidth: 0 }}
+                          activeDot={{ r: 5, strokeWidth: 0 }}
                         />
                       </AreaChart>
                     </ChartContainer>
@@ -217,24 +233,29 @@ export default function AnalyticsPage() {
                           cy="50%"
                           innerRadius={60}
                           outerRadius={100}
-                          paddingAngle={2}
+                          paddingAngle={4}
                           dataKey="value"
+                          strokeWidth={0}
                         >
                           {patientStatusData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={entry.fill}
+                              className="hover:opacity-80 transition-opacity duration-300"
+                            />
                           ))}
                         </Pie>
                       </PieChart>
                     </ChartContainer>
-                    <div className="mt-4 grid grid-cols-2 gap-3">
+                    <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 pt-4 border-t">
                       {patientStatusData.map((item) => (
                         <div key={item.name} className="flex items-center gap-2">
                           <div
-                            className="size-3 rounded-full"
+                            className="size-2 rounded-full shadow-sm"
                             style={{ backgroundColor: item.fill }}
                           />
-                          <span className="text-sm text-muted-foreground">{item.name}</span>
-                          <span className="ml-auto text-sm font-medium">{item.value}</span>
+                          <span className="text-xs text-muted-foreground font-medium">{item.name}</span>
+                          <span className="ml-auto text-xs font-bold tabular-nums">{item.value}</span>
                         </div>
                       ))}
                     </div>
@@ -250,13 +271,36 @@ export default function AnalyticsPage() {
                   </CardHeader>
                   <CardContent>
                     <ChartContainer config={chartConfig} className="h-[300px] w-full">
-                      <BarChart data={visitComplianceData} layout="vertical">
-                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                        <XAxis type="number" tickLine={false} axisLine={false} />
-                        <YAxis dataKey="study" type="category" tickLine={false} axisLine={false} width={80} />
+                      <BarChart data={visitComplianceData} layout="vertical" margin={{ left: -20, right: 10 }}>
+                        <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-muted" />
+                        <XAxis
+                          type="number"
+                          tickLine={false}
+                          axisLine={false}
+                          tickMargin={8}
+                          className="text-[10px] fill-muted-foreground font-medium"
+                        />
+                        <YAxis
+                          dataKey="study"
+                          type="category"
+                          tickLine={false}
+                          axisLine={false}
+                          width={80}
+                          className="text-[10px] fill-muted-foreground font-medium"
+                        />
                         <ChartTooltip content={<ChartTooltipContent />} />
-                        <Bar dataKey="scheduled" fill="var(--color-chart-2)" radius={[0, 4, 4, 0]} />
-                        <Bar dataKey="completed" fill="var(--color-chart-1)" radius={[0, 4, 4, 0]} />
+                        <Bar
+                          dataKey="scheduled"
+                          fill="var(--muted-foreground)"
+                          radius={[0, 4, 4, 0]}
+                          barSize={12}
+                        />
+                        <Bar
+                          dataKey="completed"
+                          fill="var(--success)"
+                          radius={[0, 4, 4, 0]}
+                          barSize={12}
+                        />
                       </BarChart>
                     </ChartContainer>
                   </CardContent>
@@ -303,13 +347,24 @@ export default function AnalyticsPage() {
                 </CardHeader>
                 <CardContent>
                   <ChartContainer config={chartConfig} className="h-[400px] w-full">
-                    <BarChart data={enrollmentData}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                      <XAxis dataKey="month" tickLine={false} axisLine={false} />
-                      <YAxis tickLine={false} axisLine={false} />
+                    <BarChart data={enrollmentData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
+                      <XAxis
+                        dataKey="month"
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={8}
+                        className="text-[10px] fill-muted-foreground uppercase font-medium"
+                      />
+                      <YAxis
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={8}
+                        className="text-[10px] fill-muted-foreground font-medium"
+                      />
                       <ChartTooltip content={<ChartTooltipContent />} />
-                      <Bar dataKey="screened" fill="var(--color-chart-3)" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="enrolled" fill="var(--color-chart-1)" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="screened" fill="var(--chart-3)" radius={[4, 4, 0, 0]} barSize={20} />
+                      <Bar dataKey="enrolled" fill="var(--primary)" radius={[4, 4, 0, 0]} barSize={20} />
                     </BarChart>
                   </ChartContainer>
                 </CardContent>
@@ -324,17 +379,30 @@ export default function AnalyticsPage() {
                 </CardHeader>
                 <CardContent>
                   <ChartContainer config={chartConfig} className="h-[400px] w-full">
-                    <LineChart data={enrollmentData}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                      <XAxis dataKey="month" tickLine={false} axisLine={false} />
-                      <YAxis tickLine={false} axisLine={false} domain={[0, 100]} />
+                    <LineChart data={enrollmentData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
+                      <XAxis
+                        dataKey="month"
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={8}
+                        className="text-[10px] fill-muted-foreground uppercase font-medium"
+                      />
+                      <YAxis
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={8}
+                        className="text-[10px] fill-muted-foreground font-medium"
+                        domain={[0, 100]}
+                      />
                       <ChartTooltip content={<ChartTooltipContent />} />
                       <Line
                         type="monotone"
                         dataKey="enrolled"
-                        stroke="var(--color-chart-1)"
-                        strokeWidth={2}
-                        dot={{ fill: "var(--color-chart-1)" }}
+                        stroke="var(--primary)"
+                        strokeWidth={2.5}
+                        dot={{ fill: "var(--primary)", r: 4, strokeWidth: 0 }}
+                        activeDot={{ r: 6, strokeWidth: 0 }}
                       />
                     </LineChart>
                   </ChartContainer>
@@ -350,14 +418,25 @@ export default function AnalyticsPage() {
                 </CardHeader>
                 <CardContent>
                   <ChartContainer config={chartConfig} className="h-[400px] w-full">
-                    <BarChart data={aeData}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                      <XAxis dataKey="month" tickLine={false} axisLine={false} />
-                      <YAxis tickLine={false} axisLine={false} />
+                    <BarChart data={aeData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
+                      <XAxis
+                        dataKey="month"
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={8}
+                        className="text-[10px] fill-muted-foreground uppercase font-medium"
+                      />
+                      <YAxis
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={8}
+                        className="text-[10px] fill-muted-foreground font-medium"
+                      />
                       <ChartTooltip content={<ChartTooltipContent />} />
-                      <Bar dataKey="mild" stackId="a" fill="var(--color-chart-3)" />
-                      <Bar dataKey="moderate" stackId="a" fill="var(--color-chart-4)" />
-                      <Bar dataKey="severe" stackId="a" fill="var(--color-destructive)" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="mild" stackId="a" fill="var(--chart-3)" barSize={32} />
+                      <Bar dataKey="moderate" stackId="a" fill="var(--warning)" barSize={32} />
+                      <Bar dataKey="severe" stackId="a" fill="var(--destructive)" radius={[4, 4, 0, 0]} barSize={32} />
                     </BarChart>
                   </ChartContainer>
                 </CardContent>
