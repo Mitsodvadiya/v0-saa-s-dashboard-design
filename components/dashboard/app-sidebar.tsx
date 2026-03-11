@@ -22,6 +22,7 @@ import {
   Users,
   UserCog,
   Stethoscope,
+  BookLock,
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -125,6 +126,11 @@ const adminItems = [
     title: "Roles & Permissions",
     icon: Shield,
     href: "/roles",
+  },
+  {
+    title: "Study Access",
+    icon: BookLock,
+    href: "/study-access",
   },
   {
     title: "Audit Logs",
