@@ -6,19 +6,13 @@ import { usePathname } from "next/navigation"
 import {
   Activity,
   BarChart3,
-  Bell,
   Building2,
   Calendar,
   ChevronDown,
-  FileText,
   FolderOpen,
   LayoutDashboard,
-  Mail,
-  MessageSquare,
   Settings,
-  Shield,
   ClipboardList,
-  CheckCircle2,
   Users,
   UserCog,
   Stethoscope,
@@ -82,11 +76,6 @@ const mainNavItems = [
     href: "/calendar",
   },
   {
-    title: "Tasks",
-    icon: CheckCircle2,
-    href: "/tasks",
-  },
-  {
     title: "Documents",
     icon: FolderOpen,
     href: "/documents",
@@ -98,23 +87,7 @@ const mainNavItems = [
   },
 ]
 
-const communicationItems = [
-  {
-    title: "Email Center",
-    icon: Mail,
-    href: "/email",
-  },
-  {
-    title: "Chat",
-    icon: MessageSquare,
-    href: "/chat",
-  },
-  {
-    title: "Notifications",
-    icon: Bell,
-    href: "/notifications",
-  },
-]
+
 
 const adminItems = [
   {
@@ -123,19 +96,9 @@ const adminItems = [
     href: "/users",
   },
   {
-    title: "Roles & Permissions",
-    icon: Shield,
-    href: "/roles",
-  },
-  {
     title: "Study Access",
     icon: BookLock,
     href: "/study-access",
-  },
-  {
-    title: "Audit Logs",
-    icon: FileText,
-    href: "/audit-logs",
   },
   {
     title: "Settings",
@@ -189,27 +152,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Communication</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {communicationItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={pathname === item.href}
-                    tooltip={item.title}
-                  >
-                    <Link href={item.href}>
-                      <item.icon className="size-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+
 
         <SidebarGroup>
           <SidebarGroupLabel>Administration</SidebarGroupLabel>
