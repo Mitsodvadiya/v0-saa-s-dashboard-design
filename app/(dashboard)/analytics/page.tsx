@@ -85,10 +85,17 @@ const chartConfig = {
   severe: { label: "Severe", color: "var(--destructive)" },
 }
 
+import { useStudy } from "@/lib/study-context"
+
 export default function AnalyticsPage() {
+  const { selectedStudy } = useStudy()
+
   return (
     <>
-      <DashboardHeader title="Analytics" description="Study performance metrics and insights" />
+      <DashboardHeader 
+        title={selectedStudy ? `${selectedStudy.shortName} Analytics` : "Global Analytics"} 
+        description={selectedStudy ? `Performance metrics for ${selectedStudy.name}` : "Study performance metrics and insights"} 
+      />
       <div className="flex-1 overflow-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
           <Tabs defaultValue="overview" className="w-full">
@@ -99,18 +106,21 @@ export default function AnalyticsPage() {
                 <TabsTrigger value="compliance">Compliance</TabsTrigger>
                 <TabsTrigger value="safety">Safety</TabsTrigger>
               </TabsList>
-              <Select defaultValue="all">
-                <SelectTrigger className="w-44">
-                  <SelectValue placeholder="Select study" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Studies</SelectItem>
-                  <SelectItem value="beacon">BEACON-2024</SelectItem>
-                  <SelectItem value="aurora">AURORA-Phase2</SelectItem>
-                  <SelectItem value="nova">NOVA-Trial</SelectItem>
-                  <SelectItem value="meridian">MERIDIAN-2024</SelectItem>
-                </SelectContent>
-              </Select>
+              
+              {!selectedStudy && (
+                <Select defaultValue="all">
+                  <SelectTrigger className="w-44">
+                    <SelectValue placeholder="Select study" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Studies</SelectItem>
+                    <SelectItem value="beacon">BEACON-2024</SelectItem>
+                    <SelectItem value="aurora">AURORA-Phase2</SelectItem>
+                    <SelectItem value="nova">NOVA-Trial</SelectItem>
+                    <SelectItem value="meridian">MERIDIAN-2024</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
             </div>
 
             <TabsContent value="overview" className="space-y-6">

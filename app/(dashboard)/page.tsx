@@ -1,3 +1,5 @@
+"use client"
+
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { StatsCards } from "@/components/dashboard/stats-cards"
 import { TodaysVisitsTable } from "@/components/dashboard/todays-visits-table"
@@ -10,12 +12,16 @@ import { NotificationsPanel } from "@/components/dashboard/notifications-panel"
 import { RecentActivity } from "@/components/dashboard/recent-activity"
 import { QuickActions } from "@/components/dashboard/quick-actions"
 
+import { useStudy } from "@/lib/study-context"
+
 export default function DashboardPage() {
+  const { selectedStudy } = useStudy()
+
   return (
     <>
       <DashboardHeader
-        title="Dashboard"
-        description="Welcome back, Dr. Chen"
+        title={selectedStudy ? `${selectedStudy.shortName} Dashboard` : "Global Dashboard"}
+        description={selectedStudy ? `Viewing metrics for ${selectedStudy.name}` : "Welcome back, Dr. Chen"}
       />
       <div className="flex-1 overflow-auto p-6 space-y-6">
         {/* 1. Top Summary Cards */}

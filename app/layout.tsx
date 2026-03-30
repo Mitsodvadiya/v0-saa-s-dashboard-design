@@ -43,6 +43,8 @@ export const viewport: Viewport = {
   initialScale: 1,
 }
 
+import { StudyProvider } from '@/lib/study-context'
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -57,7 +59,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <StudyProvider>
+            {children}
+          </StudyProvider>
         </ThemeProvider>
         <Toaster />
         <Analytics />

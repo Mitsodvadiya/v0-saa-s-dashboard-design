@@ -14,9 +14,6 @@ import {
   Trash2,
   UserPlus,
   Users,
-  UserCheck,
-  UserX,
-  Lock,
   Upload,
   BookOpen,
   X,
@@ -205,22 +202,6 @@ function StudyMultiSelect({
   )
 }
 
-// ── Stat Card ────────────────────────────────────────────────────────────────
-function StatCard({ icon: Icon, label, value, color }: { icon: React.ElementType; label: string; value: number; color: string }) {
-  return (
-    <Card className="shadow-sm">
-      <CardContent className="flex items-center gap-4 p-4">
-        <div className={`flex size-10 items-center justify-center rounded-lg ${color}`}>
-          <Icon className="size-5" />
-        </div>
-        <div>
-          <p className="text-2xl font-bold">{value}</p>
-          <p className="text-xs text-muted-foreground">{label}</p>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
 
 // ── View User Dialog ──────────────────────────────────────────────────────────
 function ViewUserDialog({ user, open, onClose }: { user: User | null; open: boolean; onClose: () => void }) {
@@ -498,7 +479,6 @@ export default function UsersPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [roleFilter, setRoleFilter] = useState("all")
   const [statusFilter, setStatusFilter] = useState("all")
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc")
   const [page, setPage] = useState(1)
 
   const [viewUser, setViewUser] = useState<User | null>(null)
@@ -518,23 +498,12 @@ export default function UsersPage() {
       const matchStatus = statusFilter === "all" || u.status === statusFilter
       return matchSearch && matchRole && matchStatus
     })
-    list = list.sort((a, b) => {
-      const da = new Date(a.createdDate).getTime()
-      const db = new Date(b.createdDate).getTime()
-      return sortDir === "desc" ? db - da : da - db
-    })
     return list
-  }, [users, searchQuery, roleFilter, statusFilter, sortDir])
+  }, [users, searchQuery, roleFilter, statusFilter])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
-  const stats = useMemo(() => ({
-    total: users.length,
-    active: users.filter((u) => u.status === "active").length,
-    inactive: users.filter((u) => u.status === "inactive").length,
-    admins: users.filter((u) => u.role === "Admin").length,
-  }), [users])
 
   const openAdd = () => {
     setFormMode("add")
@@ -601,13 +570,6 @@ export default function UsersPage() {
       <DashboardHeader title="Users" description="Manage system users and study access" />
       <div className="flex-1 overflow-auto p-6 space-y-6">
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <StatCard icon={Users} label="Total Users" value={stats.total} color="bg-primary/10 text-primary" />
-          <StatCard icon={UserCheck} label="Active" value={stats.active} color="bg-success/10 text-success" />
-          <StatCard icon={UserX} label="Inactive" value={stats.inactive} color="bg-muted text-muted-foreground" />
-          <StatCard icon={Lock} label="Admins" value={stats.admins} color="bg-destructive/10 text-destructive" />
-        </div>
 
         {/* Toolbar */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -649,25 +611,17 @@ export default function UsersPage() {
                 <TableRow>
                   <TableHead>User</TableHead>
                   <TableHead>Role</TableHead>
-                  <TableHead>Department</TableHead>
-                  <TableHead>Studies</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Last Login</TableHead>
-                  <TableHead className="cursor-pointer select-none" onClick={() => setSortDir((d) => d === "desc" ? "asc" : "desc")}>
-                    Created {sortDir === "desc" ? "↓" : "↑"}
-                  </TableHead>
                   <TableHead className="w-[50px]" />
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginated.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center py-10 text-muted-foreground">No users match your filters</TableCell>
-                  </TableRow>
+                   <TableRow>
+                     <TableCell colSpan={4} className="text-center py-10 text-muted-foreground">No users match your filters</TableCell>
+                   </TableRow>
                 ) : (
                   paginated.map((user) => {
-                    const isFullAccess = user.role === "Admin"
-                    const studyCount = user.assignedStudies.length
                     return (
                       <TableRow key={user.id}>
                         <TableCell>
@@ -682,32 +636,12 @@ export default function UsersPage() {
                           </div>
                         </TableCell>
                         <TableCell><Badge className={roleColors[user.role]}>{user.role}</Badge></TableCell>
-                        <TableCell className="text-sm">{user.department}</TableCell>
-                        {/* Studies column */}
-                        <TableCell>
-                          {isFullAccess ? (
-                            <Badge className="bg-destructive/10 text-destructive border-0 text-xs gap-1">
-                              <Shield className="size-3" />All
-                            </Badge>
-                          ) : (
-                            <button
-                              className="inline-flex items-center gap-1 rounded-full bg-primary/10 text-primary text-xs px-2 py-0.5 font-medium hover:bg-primary/20 transition-colors"
-                              onClick={() => setViewUser(user)}
-                              title={user.assignedStudies.map(id => STUDIES.find(s => s.id === id)?.shortName).join(", ")}
-                            >
-                              <BookOpen className="size-3" />
-                              {studyCount} {studyCount === 1 ? "study" : "studies"}
-                            </button>
-                          )}
-                        </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <div className={`size-2 rounded-full ${user.status === "active" ? "bg-success" : "bg-muted-foreground"}`} />
                             <span className="text-sm capitalize">{user.status}</span>
                           </div>
                         </TableCell>
-                        <TableCell className="text-sm text-muted-foreground whitespace-nowrap">{user.lastLogin}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{user.createdDate}</TableCell>
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
