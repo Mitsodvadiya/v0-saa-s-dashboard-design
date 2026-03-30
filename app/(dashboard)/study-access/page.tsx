@@ -2,14 +2,9 @@
 
 import { useState, useMemo } from "react"
 import {
-    BookLock,
     Users,
-    Plus,
-    X,
     Search,
-    Shield,
     Check,
-    Beaker,
 } from "lucide-react"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { Button } from "@/components/ui/button"
@@ -27,16 +22,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table"
 import { toast } from "sonner"
-import { STUDIES, USER_STUDY_ASSIGNMENTS, ROLE_STUDY_POLICY, type Study } from "@/lib/study-access-data"
+import { STUDIES, USER_STUDY_ASSIGNMENTS, type Study } from "@/lib/study-access-data"
 
 // ── Mock users (must match users/page.tsx for consistency) ──────────────────
 const ALL_USERS = [
@@ -60,12 +47,6 @@ const roleColors: Record<string, string> = {
     CRA: "bg-muted text-muted-foreground border-0",
 }
 
-const statusColor: Record<string, string> = {
-    "Active": "bg-success/10 text-success border-0",
-    "Recruiting": "bg-primary/10 text-primary border-0",
-    "On Hold": "bg-warning/10 text-warning border-0",
-    "Completed": "bg-muted text-muted-foreground border-0",
-}
 
 // ── Manage Users Dialog ───────────────────────────────────────────────────────
 function ManageUsersDialog({
@@ -177,75 +158,34 @@ function StudyCard({
     onManage: () => void
 }) {
     const assignedUsers = ALL_USERS.filter((u) => assignedIds.includes(u.id))
-    const nonAdmins = assignedUsers.filter((u) => u.role !== "Admin")
-    const admins = assignedUsers.filter((u) => u.role === "Admin")
 
     return (
-        <Card className="shadow-sm hover:shadow-md transition-shadow">
+        <Card className="shadow-sm">
             <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                        <div className={`flex size-10 items-center justify-center rounded-lg shrink-0 ${study.color}`}>
-                            <Beaker className="size-5" />
-                        </div>
-                        <div>
-                            <CardTitle className="text-sm font-semibold">{study.shortName}</CardTitle>
-                            <CardDescription className="text-xs mt-0.5 line-clamp-1">{study.sponsor} · {study.phase}</CardDescription>
-                        </div>
-                    </div>
-                    <Badge className={`${statusColor[study.status] ?? "bg-muted border-0"} shrink-0 text-xs`}>{study.status}</Badge>
+                <div className="flex items-center justify-between gap-3">
+                    <CardTitle className="text-sm font-semibold">{study.shortName}</CardTitle>
+                    <Button variant="outline" size="sm" className="h-8 text-xs px-2" onClick={onManage}>
+                        <Users className="mr-1 size-3" />Manage Access
+                    </Button>
                 </div>
             </CardHeader>
             <CardContent className="pt-0 space-y-3">
                 <Separator />
-                {/* Assigned users */}
                 <div>
-                    <div className="flex items-center justify-between mb-2">
-                        <p className="text-xs font-medium text-muted-foreground">Assigned Users ({assignedUsers.length})</p>
-                        <Button variant="ghost" size="sm" className="h-6 text-xs px-2" onClick={onManage}>
-                            <Users className="mr-1 size-3" />Manage
-                        </Button>
-                    </div>
+                    <p className="text-xs font-medium text-muted-foreground mb-2 px-1">Persons with access:</p>
                     {assignedUsers.length === 0 ? (
-                        <p className="text-xs text-muted-foreground italic">No users assigned</p>
+                        <p className="text-xs text-muted-foreground italic px-1">No users assigned</p>
                     ) : (
-                        <div className="space-y-1">
-                            {/* Admin row */}
-                            {admins.length > 0 && (
-                                <div className="flex items-center gap-1.5">
-                                    <div className="flex -space-x-1">
-                                        {admins.slice(0, 2).map((u) => (
-                                            <Avatar key={u.id} className="size-6 border border-background">
-                                                <AvatarFallback className="bg-destructive/10 text-destructive text-[10px]">{u.initials}</AvatarFallback>
-                                            </Avatar>
-                                        ))}
-                                    </div>
-                                    <span className="text-xs text-muted-foreground">Admin (full access)</span>
-                                </div>
-                            )}
-                            {/* Non-admin avatars */}
-                            {nonAdmins.length > 0 && (
-                                <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                                    <div className="flex -space-x-1">
-                                        {nonAdmins.slice(0, 5).map((u) => (
-                                            <Avatar key={u.id} className="size-6 border border-background" title={u.name}>
-                                                <AvatarFallback className="bg-primary/10 text-primary text-[10px]">{u.initials}</AvatarFallback>
-                                            </Avatar>
-                                        ))}
-                                    </div>
-                                    {nonAdmins.length > 5 && (
-                                        <span className="text-xs text-muted-foreground">+{nonAdmins.length - 5} more</span>
-                                    )}
-                                </div>
-                            )}
-                            {/* Name list for small counts */}
-                            {nonAdmins.length > 0 && nonAdmins.length <= 4 && (
-                                <div className="flex flex-wrap gap-1 mt-1">
-                                    {nonAdmins.map((u) => (
-                                        <Badge key={u.id} variant="secondary" className="text-xs">{u.name.split(" ").slice(-1)[0]}</Badge>
-                                    ))}
-                                </div>
-                            )}
+                        <div className="flex flex-wrap gap-1">
+                            {assignedUsers.map((u) => (
+                                <Badge
+                                    key={u.id}
+                                    variant="secondary"
+                                    className={`text-[10px] py-0 h-5 ${u.role === "Admin" ? "bg-destructive/10 text-destructive border-transparent" : ""}`}
+                                >
+                                    {u.name} {u.role === "Admin" && "(Admin)"}
+                                </Badge>
+                            ))}
                         </div>
                     )}
                 </div>
@@ -254,63 +194,6 @@ function StudyCard({
     )
 }
 
-// ── Full assignment table view ────────────────────────────────────────────────
-function AssignmentTable({ assignments }: { assignments: Record<string, string[]> }) {
-    return (
-        <Card className="shadow-sm">
-            <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-semibold">Study ↔ User Assignment Matrix</CardTitle>
-                <CardDescription className="text-xs">Overview of which users can access each study</CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className="min-w-[160px]">User</TableHead>
-                                {STUDIES.map((s) => (
-                                    <TableHead key={s.id} className="text-center text-xs min-w-[90px]">{s.shortName}</TableHead>
-                                ))}
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {ALL_USERS.map((user) => {
-                                const isAdmin = user.role === "Admin"
-                                return (
-                                    <TableRow key={user.id}>
-                                        <TableCell>
-                                            <div className="flex items-center gap-2">
-                                                <Avatar className="size-7">
-                                                    <AvatarFallback className="bg-primary/10 text-primary text-xs">{user.initials}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <p className="text-xs font-medium leading-tight">{user.name}</p>
-                                                    <Badge className={`${roleColors[user.role]} text-[10px] px-1 py-0`}>{user.role}</Badge>
-                                                </div>
-                                            </div>
-                                        </TableCell>
-                                        {STUDIES.map((study) => {
-                                            const hasAccess = isAdmin || (assignments[study.id] ?? []).includes(user.id)
-                                            return (
-                                                <TableCell key={study.id} className="text-center">
-                                                    {hasAccess ? (
-                                                        <Check className={`size-4 mx-auto ${isAdmin ? "text-destructive" : "text-success"}`} />
-                                                    ) : (
-                                                        <X className="size-4 mx-auto text-muted-foreground/30" />
-                                                    )}
-                                                </TableCell>
-                                            )
-                                        })}
-                                    </TableRow>
-                                )
-                            })}
-                        </TableBody>
-                    </Table>
-                </div>
-            </CardContent>
-        </Card>
-    )
-}
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function StudyAccessPage() {
@@ -328,20 +211,12 @@ export default function StudyAccessPage() {
     const [assignments, setAssignments] = useState<Record<string, string[]>>(buildInitialAssignments)
     const [selectedStudy, setSelectedStudy] = useState<Study | null>(null)
     const [manageOpen, setManageOpen] = useState(false)
-    const [view, setView] = useState<"cards" | "matrix">("cards")
 
     const handleSave = (studyId: string, userIds: string[]) => {
         setAssignments((prev) => ({ ...prev, [studyId]: userIds }))
         toast.success("Study access updated")
     }
 
-    const totalAssignedUsers = useMemo(() => {
-        const ids = new Set<string>()
-        Object.values(assignments).forEach((uids) => uids.forEach((id) => ids.add(id)))
-        // add admins
-        ALL_USERS.filter((u) => u.role === "Admin").forEach((u) => ids.add(u.id))
-        return ids.size
-    }, [assignments])
 
     return (
         <>
@@ -350,97 +225,20 @@ export default function StudyAccessPage() {
                 description="Control which employees can access each clinical study"
             />
             <div className="flex-1 overflow-auto p-6 space-y-6">
-
-                {/* Stat cards */}
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                    <Card className="shadow-sm">
-                        <CardContent className="flex items-center gap-4 p-4">
-                            <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                                <Beaker className="size-5" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold">{STUDIES.length}</p>
-                                <p className="text-xs text-muted-foreground">Total Studies</p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card className="shadow-sm">
-                        <CardContent className="flex items-center gap-4 p-4">
-                            <div className="flex size-10 items-center justify-center rounded-lg bg-success/10 text-success">
-                                <Users className="size-5" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold">{totalAssignedUsers}</p>
-                                <p className="text-xs text-muted-foreground">Users with Access</p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card className="shadow-sm">
-                        <CardContent className="flex items-center gap-4 p-4">
-                            <div className="flex size-10 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
-                                <Shield className="size-5" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold">{ALL_USERS.filter(u => u.role === "Admin").length}</p>
-                                <p className="text-xs text-muted-foreground">Admins (All Studies)</p>
-                            </div>
-                        </CardContent>
-                    </Card>
+                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
+                    {STUDIES.map((study) => {
+                        const adminIds = ALL_USERS.filter(u => u.role === "Admin").map(u => u.id)
+                        const allIds = [...new Set([...adminIds, ...(assignments[study.id] ?? [])])]
+                        return (
+                            <StudyCard
+                                key={study.id}
+                                study={study}
+                                assignedIds={allIds}
+                                onManage={() => { setSelectedStudy(study); setManageOpen(true) }}
+                            />
+                        )
+                    })}
                 </div>
-
-                {/* Role Policy Reference */}
-                <Card className="shadow-sm">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-semibold">Study Access Policies by Role</CardTitle>
-                        <CardDescription className="text-xs">Layer 2 access control — who can see which studies</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex flex-wrap gap-2">
-                            {Object.entries(ROLE_STUDY_POLICY).map(([role, policy]) => (
-                                <div key={role} className="flex items-center gap-2 rounded-md border px-3 py-2">
-                                    <Badge className={`${roleColors[role]} text-xs`}>{role}</Badge>
-                                    <span className="text-xs text-muted-foreground">→</span>
-                                    <Badge className={`${policy.color} border-0 text-xs`}>{policy.label}</Badge>
-                                </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* View toggle + header */}
-                <div className="flex items-center justify-between">
-                    <p className="text-sm text-muted-foreground font-medium">
-                        {STUDIES.filter(s => s.status === "Active" || s.status === "Recruiting").length} active / recruiting studies
-                    </p>
-                    <div className="flex gap-2">
-                        <Button variant={view === "cards" ? "default" : "outline"} size="sm" onClick={() => setView("cards")}>
-                            Study Cards
-                        </Button>
-                        <Button variant={view === "matrix" ? "default" : "outline"} size="sm" onClick={() => setView("matrix")}>
-                            Access Matrix
-                        </Button>
-                    </div>
-                </div>
-
-                {/* Content */}
-                {view === "cards" ? (
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        {STUDIES.map((study) => {
-                            const adminIds = ALL_USERS.filter(u => u.role === "Admin").map(u => u.id)
-                            const allIds = [...new Set([...adminIds, ...(assignments[study.id] ?? [])])]
-                            return (
-                                <StudyCard
-                                    key={study.id}
-                                    study={study}
-                                    assignedIds={allIds}
-                                    onManage={() => { setSelectedStudy(study); setManageOpen(true) }}
-                                />
-                            )
-                        })}
-                    </div>
-                ) : (
-                    <AssignmentTable assignments={assignments} />
-                )}
             </div>
 
             <ManageUsersDialog
